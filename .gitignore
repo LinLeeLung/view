@@ -1,0 +1,6 @@
+# 排除不需要上傳的檔案或資料夾
+node_modules/
+dist/
+.env
+.vscode/
+.DS_Store
