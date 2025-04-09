@@ -1,0 +1,97 @@
+@import "tailwindcss";
+body, .result-container {
+  font-family: "DFKai-SB", "標楷體", DFKai-SB, "KaiTi", serif; /* 加入標楷體 */
+  margin: 5px; /* ✅ 設定 margin 1px */
+  padding: 5px; /* ✅ 設定 padding 1px */
+}
+     
+      
+  .result-container {
+  width: 100%;
+  margin-top: 10px;
+  background-color: #e6f8e8;
+  border-radius: 8px;
+  padding: 10px;
+}
+input{
+  font-family: "DFKai-SB", "標楷體", DFKai-SB, "KaiTi", serif; /* 加入標楷體 */
+  font-size: 14px;
+  padding: 1px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+table {
+  width: 90%;
+  border-collapse: collapse;
+  margin-right: 10px;
+  font-size: 10px;
+  table-layout: auto; /* ✅ 調整為自動寬度 */
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+  white-space: nowrap;
+  word-wrap: break-word;
+  font-size: 12px;
+}
+
+/* ✅ 針對備註欄位進行優化 */
+td.remarks {
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+th {
+  background-color: #f2f2f2;
+ 
+}
+
+
+
+h1, h3 {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.add {
+  
+  font-size: 18px;
+  padding: 2px 0;
+  text-align: center;
+}
+
+.header {
+  font-size: 20px;
+  padding: 2px 0;
+  text-align: center;
+}
+.notice {
+  font-size: 12px;
+  padding: 2px 0;
+  text-align: left;
+}
+/* 全局設置 */
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  
+  background-color: #f9fafb; /* 淺灰色背景 */
+}
+
+/* 讓 #app 內部的內容置中 */
+#app {
+  
+  width: 100%;
+  max-width: 1600px; /* 最大寬度 1200px */
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}

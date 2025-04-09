@@ -6,9 +6,9 @@
         v-model="isEnabled"
         class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded"
       />
-      <h2 class="text-md font-semibold text-gray-700">一字型計價</h2>
+      <h2 class="text-md font-semibold text-gray-700">一字型</h2>
 
-      <label class="w-20 font-medium text-gray-600 text-sm">顏色</label>
+      <label class="w-8 font-medium text-gray-600 text-sm">顏色</label>
       <input
         v-model="form.color"
         type="text"
@@ -16,13 +16,28 @@
         :disabled="!isEnabled"
       />
 
-      <label class="ml-4 text-sm font-medium text-gray-600">摘要</label>
+      <label class="w-8  text-sm font-medium text-gray-600">摘要</label>
       <input
         v-model="form.sumary"
         type="text"
         class="w-20 p-1 border rounded-md text-sm"
         :disabled="!isEnabled"
       />
+      <label class="w-8  text-md font-medium text-gray-600">單開</label>
+      <input
+        v-model="form.oneOpen"
+        type="checkbox"
+        class="w-5 p-1 border rounded-md text-sm"
+        :disabled="!isEnabled"
+      />
+      <label class="w-8  text-md font-medium text-gray-600">雙開</label>
+      <input
+        v-model="form.duOpen"
+        type="checkbox"
+        class=" p-1 border rounded-md text-sm"
+        :disabled="!isEnabled"
+      />
+
     </div>
 
     <table class="w-full table-fixed">
@@ -70,13 +85,12 @@ import { ref, watch } from 'vue';
 
 export default {
   name: 'One',
-  emits: ['update-result'],
   props: {
-    index: {
-      type: [String, Number],
-      required: true
-    }
+    sepPrice: { type: Number, default: 750 },
+    index: { type: [String, Number], required: true },
+    initialValue: { type: Object, default: () => ({}) }
   },
+  emits: ['update-result'],
   setup(props, { emit }) {
     const form = ref({
       length: 100,
@@ -88,28 +102,81 @@ export default {
       color: 'CS-201',
       limit: 68,
       sumary: '',
-      note: ''
+      note: '',
+      oneOpen: false,
+      duOpen: false 
     });
 
     const isEnabled = ref(false);
+    let isLoading = false;
 
-    const validateInput = (field) => {
-      const value = form.value[field];
-      if (field === 'limit') {
-        form.value.limit = (value === null || value === undefined || isNaN(value))
-          ? 60
-          : Math.max(60, value);
-      } else if (typeof value !== 'string') {
-        form.value[field] = isNaN(value) || value < 0 ? 0 : value;
+    watch(
+  () => props.initialValue,
+  (val) => {
+    if (val) {
+      isLoading = true;
+      Object.keys(form.value).forEach((key) => {
+        if (val.hasOwnProperty(key)) {
+          form.value[key] = val[key];
+        }
+      });
+      // ✅ 正確設置 isEnabled
+      isEnabled.value = val.isEnabled === undefined ? false : val.isEnabled;
+
+      isLoading = false;
+
+      // ✅ 如果已啟用，則強制執行一次計算
+      if (isEnabled.value) {
+        calculate();
       }
-      calculate();
-    };
+    }
+  },
+  { immediate: true, deep: true }
+);
 
-    const calcOneSide = (length, depth, frontEdge, backWall, wrapBack, limit) => {
+
+
+
+
+// ✅ 當 isEnabled 變更時，觸發計算或 emit
+watch(isEnabled, (val) => {
+  if (!isLoading) {
+    calculate(); // ✅ 勾選變更時觸發計算
+  } else if (!val) {
+    // ✅ 如果取消勾選，回傳 isEnabled: false
+    emit('update-result', {
+      index: props.index,
+      isEnabled: false
+    });
+  }
+});
+
+
+    // ✅ 只在使用者操作時觸發 emit（calculate）
+    watch(
+      form,
+      () => {
+        if (isEnabled.value && !isLoading) {
+          calculate();
+        }
+      },
+      { deep: true }
+    );
+
+    const calcOneSide = (length, depth, frontEdge, backWall, wrapBack, limit,oneOpen,duOpen) => {
       const thickness = depth + frontEdge + backWall + wrapBack;
       let calcSteps = '';
       let cmValue = 0;
-
+      let area = Math.round((length * (depth + frontEdge + backWall + wrapBack)) / 900);
+      let calcSteps2 = `${length} * (${depth} + ${frontEdge} + ${backWall} + ${wrapBack}) / 900 = ${area}平方尺`;
+      let frontEdgeLength = 0;
+      frontEdgeLength = length;
+      if(oneOpen) {
+        frontEdgeLength = frontEdge+length
+      }
+      if (duOpen) {
+        frontEdgeLength = frontEdge * 2 + length ;
+      } 
       if (thickness < 48 && depth < 40) {
         cmValue = length * 0.85;
         calcSteps = `${length} * 0.85 = ${cmValue.toFixed(0)} 公分`;
@@ -120,7 +187,6 @@ export default {
         const deduction = limit - 60 > 0 ? limit - 60 : 0;
         const adjusted = (thickness - deduction) / 60;
         cmValue = length * adjusted;
-
         const wrapStr = wrapBack > 0 ? ` + ${wrapBack}` : '';
         const minusStr = deduction > 0 ? ` - ${deduction}` : '';
         calcSteps = `${length} * (${depth} + ${frontEdge} + ${backWall}${wrapStr}${minusStr}) / 60 = ${cmValue.toFixed(0)} 公分`;
@@ -128,54 +194,61 @@ export default {
         cmValue = length;
         calcSteps = `${length} = ${cmValue.toFixed(0)} 公分`;
       }
-
-      return { cmValue, calcSteps };
+    
+      return { cmValue, calcSteps, area, calcSteps2 ,frontEdgeLength};
     };
 
-    const calculate = () => {
-      if (!isEnabled.value) {
-        emit('update-result', { index: props.index, isEnabled: false });
-        return;
-      }
+   const calculate = () => {
+  if (isLoading) {
+    return;
+  }
 
-      const f = form.value;
-      const { cmValue, calcSteps } = calcOneSide(f.length, f.depth, f.frontEdge, f.backWall, f.wrapBack, f.limit);
+  // ✅ 如果未勾選，僅通知父層
+  if (!isEnabled.value) {
+    emit('update-result', {
+      index: props.index,
+      isEnabled: false
+    });
+    return;
+  }
 
-      const roundedValue = Math.round(cmValue);
-      const subtotal = roundedValue * f.unitPrice;
+  const f = form.value;
+  const { cmValue, calcSteps,area,calcSteps2,frontEdgeLength } = calcOneSide(
+    f.length,
+    f.depth,
+    f.frontEdge,
+    f.backWall,
+    f.wrapBack,
+    f.limit,
+    f.oneOpen,
+    f.duOpen
+  );
 
-      emit('update-result', {
-        index: props.index,
-        isEnabled: true,
-        length: f.length,
-        depth: f.depth,
-        frontEdge: f.frontEdge,
-        backWall: f.backWall,
-        wrapBack: f.wrapBack,
-        color: f.color,
-        sumary: f.sumary,
-        note: f.note,
-        limit: f.limit,
-        roundedCentimeters: roundedValue,
-        subtotal: Math.round(subtotal),
-        unitPrice: f.unitPrice,
-        calculationSteps: calcSteps.trim(),
-      });
-    };
+  const roundedValue = Math.round(cmValue);
+  const subtotal = roundedValue * f.unitPrice;
+  const subtotal2 = area * props.sepPrice;
+  
+  emit('update-result', {
+    index: props.index,
+    isEnabled: true,
+    ...f,
+    roundedCentimeters: roundedValue,
+    subtotal: Math.round(subtotal),
+    calculationSteps: calcSteps.trim(),
+    calculationSteps2: calcSteps2.trim(),
+    area:area,
+    subtotal2:Math.round(subtotal2),  
+    frontEdgeLength: frontEdgeLength,
 
-    watch(form, calculate, { deep: true });
-    watch(isEnabled, calculate);
-    calculate();
+  });
+};
 
     return {
       form,
       isEnabled,
-      validateInput,
-      calculate
+      calculate,
+      isLoading
     };
   }
 };
 </script>
-
-<style scoped>
-</style>
