@@ -1,5 +1,5 @@
 <template>
-<<<<<<< HEAD
+
   
 
   <div class="container p-6">
