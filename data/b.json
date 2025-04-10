@@ -1,0 +1,215 @@
+{
+  "results": {
+    "一字型1": {
+      "index": "一字型1",
+      "isEnabled": true,
+      "length": 100,
+      "depth": 60,
+      "frontEdge": 4,
+      "backWall": 4,
+      "wrapBack": 0,
+      "color": "CS-201",
+      "sumary": "",
+      "note": "",
+      "limit": 68,
+      "roundedCentimeters": 100,
+      "subtotal": 12000,
+      "unitPrice": 120,
+      "calculationSteps": "100 = 100 公分"
+    },
+    "L1": {
+      "index": "L1",
+      "isEnabled": true,
+      "roundedCentimeters": 170,
+      "subtotal": 20400,
+      "unitPrice": 120,
+      "color": "CS-201",
+      "sumary": "",
+      "note": "",
+      "limit": 68,
+      "calculationSteps": "A：100 = 100 公分\n B：100 = 100 公分\n 100 + 100-30 = 170 公分",
+      "detail": {
+        "side1": {
+          "length": 100,
+          "depth": 60,
+          "frontEdge": 4,
+          "backWall": 4,
+          "wrapBack": 0,
+          "cmValue": 100
+        },
+        "side2": {
+          "length": 100,
+          "depth": 60,
+          "frontEdge": 4,
+          "backWall": 4,
+          "wrapBack": 0,
+          "cmValue": 100
+        }
+      }
+    },
+    "M1": {
+      "index": "M1",
+      "isEnabled": true,
+      "unitPrice": 120,
+      "color": "CS-201",
+      "limit": 68,
+      "roundedCentimeters": 240,
+      "subtotal": 28800,
+      "calculationSteps": "A：100 = 100 公分\nB：100 = 100 公分\nC：100 = 100 公分\n 100 + 100 + 100 - 30-30 = 240 公分",
+      "detail": {
+        "side1": {
+          "length": 100,
+          "depth": 60,
+          "frontEdge": 4,
+          "backWall": 4,
+          "wrapBack": 0,
+          "cmValue": 100
+        },
+        "side2": {
+          "length": 100,
+          "depth": 60,
+          "frontEdge": 4,
+          "backWall": 4,
+          "wrapBack": 0,
+          "cmValue": 100
+        },
+        "side3": {
+          "length": 100,
+          "depth": 60,
+          "frontEdge": 4,
+          "backWall": 4,
+          "wrapBack": 0,
+          "cmValue": 100
+        }
+      }
+    }
+  },
+  "itemList": [
+    {
+      "name": "下嵌水槽",
+      "price": 2500,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "平接水槽",
+      "price": 6000,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "上掛",
+      "price": 1500,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "平接爐",
+      "price": 4000,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "側落腳卡榫",
+      "price": 2000,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "側落腳平接",
+      "price": 6000,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "方型管",
+      "price": 1500,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "菜刀型工資",
+      "price": 1500,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "包木座工資",
+      "price": 25000,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "包浴缸工資",
+      "price": 10000,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "包鐵件工資",
+      "price": 25000,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "挖排煙機孔",
+      "price": 1500,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "弧形工資",
+      "price": 2000,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "砧板",
+      "price": 1000,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "插座",
+      "price": 500,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "昇降插座",
+      "price": 1000,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "三角架",
+      "price": 1500,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "拆+丟",
+      "price": 5000,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "活動蓋板",
+      "price": 1500,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "餘料加工",
+      "price": 500,
+      "amount": 1,
+      "checked": false
+    },
+    {
+      "name": "其他項目",
+      "price": 0,
+      "amount": 1,
+      "checked": false
+    }
+  ]
+}
