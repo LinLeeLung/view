@@ -1,12 +1,13 @@
 <template>
+<<<<<<< HEAD
   
 
   <div class="container p-6">
     
     <div class="text-center mb-6">
       <h1 class="text-2xl font-bold text-green-600">峻晟會計專用估價(新)</h1>
-    </div>
-
+  </div>
+  
     <!-- File Management Section -->
     <div class="mb-6 p-4 bg-gray-100 rounded-lg">
       <h3 class="text-lg font-semibold text-gray-700 mb-2">檔案管理</h3>

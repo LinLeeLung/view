@@ -1,8 +1,11 @@
 /* ✅ 字型與基本排版 */
+<<<<<<< HEAD
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+=======
+>>>>>>> 5759ab02787f4a437330bf0205a7bfdaba419ddd
 body, .result-container {
   font-family: "DFKai-SB", "標楷體", DFKai-SB, "KaiTi", serif;
   margin: 5px;
