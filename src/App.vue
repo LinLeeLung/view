@@ -2,102 +2,103 @@
 
   
 
-  <div class="container p-6">
+  <div class="container p-2">
     
-    <div class="text-center mb-6">
-      <h1 class="text-2xl font-bold text-green-600">峻晟會計專用估價(新)</h1>
-  </div>
+      <div class="text-center mb-6">
+          <h1 class="text-2xl font-bold text-green-600">峻晟會計專用估價(新)</h1>
+      </div>
   
     <!-- File Management Section -->
-    <div class="mb-6 p-4 bg-gray-100 rounded-lg">
-      <h3 class="text-lg font-semibold text-gray-700 mb-2">檔案管理</h3>
-      <div class="flex flex-wrap gap-4 mb-4">
+      <div class="mb-6 p-1 bg-gray-100 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">檔案管理</h3>
+         <div class="flex flex-wrap gap-4 mb-4">
+           <div>
+            <label class="mr-2">儲存檔案名稱:</label>
+            <input
+              v-model="newFilename"
+              type="text"
+              class="p-1 border rounded-md text-sm"
+              placeholder="輸入檔案名稱"
+            />
+            <button
+              @click="saveFile"
+              class="m-2 p-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+             >
+              儲存
+            </button>
+         </div>
         <div>
-          <label class="mr-2">儲存檔案名稱:</label>
-          <input
-            v-model="newFilename"
-            type="text"
-            class="p-1 border rounded-md text-sm"
-            placeholder="輸入檔案名稱"
-          />
-          <button
-            @click="saveFile"
-            class="ml-2 px-4 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-            >
-            儲存
-          </button>
-        </div>
-        <div>
-          <label class="mr-2">載入檔案:</label>
-          <select v-model="selectedFile" class="p-1 border rounded-md text-sm">
+          <label class="m-2">載入檔案:</label>
+          <select v-model="selectedFile" class="p-2 border rounded-md text-sm w-30">
             <option value="" disabled>選擇檔案</option>
             <option v-for="file in files" :key="file" :value="file">{{ file }}</option>
           </select>
           <button
             @click="loadFile"
-            class="ml-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+            class="m-2 ml-3 p-1  bg-blue-500 text-white rounded hover:bg-blue-600"
             :disabled="!selectedFile"
           >
             載入
           </button>
           <button
             @click="deleteFile"
-            class="ml-2 px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+            class="m-1 p-1 bg-red-500 text-white rounded hover:bg-red-600"
             :disabled="!selectedFile"
           >
             刪除
           </button>
 
                   
-          <label class="mr-2">統一價格：</label>
+          <label class="m-2">統一價格：</label>
           <input
             v-model.number="unifiedPrice"
             type="number"
             min="1"
-            class="p-1 border rounded-md w-20 text-sm"
+            class="p-1 m-1 border rounded-md w-30 text-sm"
             placeholder="輸入單價"
           />
           <button
             @click="applyUnifiedPrice"
-            class="ml-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+            class="m-1 mr-3 p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            同一價格
+            統一價格
           </button>
-          <label class="mr-2">統一顏色：</label>
+          <label class="m-2 ">統一顏色：</label>
           <input
             v-model="unifiedColor"
             type="text"
            
-            class="p-1 border rounded-md w-20 text-sm"
+            class="p-1 m-1 border rounded-md w-30 text-sm"
             placeholder="輸入顏色"
           />
-          <button
+           <button
             @click="applyUnifiedColor"
-            class="ml-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            同一顏色
-          </button>
-          <button @click="generateQuotation" class="ml-2 bg-purple-500 text-white px-4 py-1 rounded hover:bg-purple-600">
+            class="m-1 p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+           >
+            統一顏色
+           </button>
+           <button @click="generateQuotation" class="m-1 p-1 bg-purple-500 text-white rounded hover:bg-purple-600">
             產出報價單
            </button>
-           <label class = "m-2" for="checkbox">工料分離</label>
+           <label class = "m-1" for="checkbox">工料分離</label>
            <input
-        type="checkbox"
-        v-model="isSep"
-        class="m-1 h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded"
-      />
-      <label class = "m-2" for="checkbox">每才單價</label>
-           <input
-        type="number"
-        v-model="sepPrice"
-        class="p-1 border rounded-md w-20 text-sm"
-      />
-        </div>
-      </div>
-      <p v-if="message" class="text-sm text-gray-600">{{ message }}</p>
-    </div>
+            type="checkbox"
+            v-model="isSep"
+            class="m-1 h-3 w-3 text-green-500 focus:ring-green-500 border-gray-300 rounded"
+           />
+          <label class = "m-1" for="checkbox">每才單價</label>
+          <input
+            type="number"
+            v-model="sepPrice"
+            class="p-1 border rounded-md w-15 text-sm"
+              />
+          </div>
+          </div>
+          <p v-if="message" class="text-sm text-gray-600">{{ message }}</p>
+       </div>
 
-    <div class="bg-blue-50 p-4 rounded-lg shadow-md">
+      <!-- 客戶資料 -->
+        <div class="bg-blue-50 p-1 rounded-lg shadow-md">
           客戶關鍵字<input type =text v-model="cuskeyword" />
           <label> 選擇客戶：</label>  <select v-if="filterCustomers.length > 0" v-model="selectedCustomer" @change="fillDetails">
             <option v-for="customer in filterCustomers" :key="customer.name" :value="customer">
@@ -114,32 +115,32 @@
       </div>
 
 
-    <!-- 一字型區塊 -->
-<h3 class="text-lg font-semibold text-gray-700 mb-2">一字型</h3>
-<div class="grid grid-cols-3 gap-4 mb-6 bg-blue-100 p-4 rounded">
-  <div v-for="index in 6" :key="index" class="min-w-[300px]">
-    <One
-      :sepPrice="sepPrice"
-      :index="'一字型' + index"
-      :initialValue="resultsProxy['一字型' + index]"
-      @update-result="updateResult"
-    />
-  </div>
-</div>
+            <!-- 一字型區塊 -->
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">一字型</h3>
+        <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
+                <div v-for="index in 6" :key="'One' + index" class="min-w-0 w-full overflow-hidden">
+            <One
+              :sepPrice="sepPrice"
+              :index="'一字型' + index"
+              :initialValue="resultsProxy['一字型' + index]"
+              @update-result="updateResult"
+            />
+          </div>
+        </div>
       
 
       <!-- L 型區塊 -->
       <h3 class="text-lg font-semibold text-gray-700 mb-2">L 型</h3>
-      <div class="flex flex-row flex-wrap gap-4 mb-6 bg-blue-100 p-4 rounded">
-        <div v-for="index in 3" :key="'L' + index" class="flex-1 min-w-[300px]">
+      <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
+        <div v-for="index in 3" :key="'L' + index" class="min-w-0 w-full overflow-hidden">
           <L :sepPrice="sepPrice" :index="'L' + index" :initialValue="resultsProxy['L' + index]" @update-result="updateResult" />
         </div>
       </div>
 
       <!-- M 型區塊 -->
        <h3 class="text-lg font-semibold text-gray-700 mb-2">M 型</h3>
-      <div class="flex flex-row flex-wrap gap-4 mb-6 bg-blue-100 p-4 rounded">
-        <div v-for="index in 3" :key="'M' + index" class="flex-1 min-w-[300px]">
+      <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
+        <div v-for="index in 3" :key="'M' + index" class="min-w-0 w-full overflow-hidden">
           <M
           :sepPrice="sepPrice"
           :index="'M' + index"
@@ -152,8 +153,8 @@
 
       <!-- 中島區塊 -->
       <h3 class="text-lg font-semibold text-gray-700 mb-2">中島</h3>
-      <div class="flex flex-row flex-wrap gap-4 mb-6 bg-blue-100 p-4 rounded">
-        <div v-for="index in 3" :key="'Island' + index" class="flex-1 min-w-[300px]">
+      <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
+        <div v-for="index in 3" :key="'Island' + index" class="min-w-0 w-full overflow-hidden">
           <Iland
           :sepPrice="sepPrice"
           :index="'中島' + index"
@@ -167,8 +168,8 @@
 
        <!-- 側落腳區塊 -->
       <h3 class="text-lg font-semibold text-gray-700 mb-2">側落腳</h3>
-      <div class="flex flex-row flex-wrap gap-4 mb-6 bg-blue-100 p-4 rounded">
-        <div v-for="index in 3" :key="'Leg' + index" class="flex-1 min-w-[300px]">
+      <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
+        <div v-for="index in 3" :key="'Leg' + index" class="w-full sm:w-[48%] lg:w-[30%] min-w-0 overflow-x-auto">
           <Leg
           :sepPrice="sepPrice"
           :index="'側落腳' + index"
@@ -182,8 +183,8 @@
 
       <!-- 倒包區塊 -->
       <h3 class="text-lg font-semibold text-gray-700 mb-2">倒包</h3>
-      <div class="flex flex-row flex-wrap gap-4 mb-6 bg-blue-100 p-4 rounded">
-        <div v-for="index in 3" :key="'Wrap' + index" class="flex-1 min-w-[300px]">
+      <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
+        <div v-for="index in 3" :key="'Wrap' + index" class="w-full sm:w-[48%] lg:w-[30%] min-w-0 overflow-x-auto">
           <Wrap
           :sepPrice="sepPrice"
           :index="'倒包' + index"
@@ -197,8 +198,8 @@
       <!--假腳或門檻-->
 
         <h3 class="text-lg font-semibold text-gray-700 mb-2">假腳或門檻</h3>
-        <div class="flex flex-row flex-wrap gap-4 mb-6 bg-blue-100 p-4 rounded">
-          <div v-for="index in 3" :key="'DoorFront' + index" class="flex-1 min-w-[300px]">
+        <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
+          <div v-for="index in 3" :key="'DoorFront' + index" class="w-full sm:w-[48%] lg:w-[30%] min-w-0 overflow-x-auto">
             <DoorFront
            :sepPrice="sepPrice"
            :index="'假腳或門檻' + index"
@@ -210,8 +211,8 @@
        
         <!--高背-->
         <h3 class="text-lg font-semibold text-gray-700 mb-2">高背</h3>
-        <div class="flex flex-row flex-wrap gap-4 mb-6 bg-blue-100 p-4 rounded">
-          <div v-for="index in 3" :key="'Wall' + index" class="flex-1 min-w-[300px]">
+        <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
+          <div v-for="index in 3" :key="'Wall' + index" class="w-full sm:w-[48%] lg:w-[30%] min-w-0 overflow-x-auto">
             <Wall
            :sepPrice="sepPrice"
            :index="'高背' + index"
@@ -220,46 +221,51 @@
            />
           </div>
         </div>  
+      
+      
 
       <!-- 附加項目區塊 -->
+
       <h3 class="text-lg font-semibold text-gray-700 mb-2">附加項目</h3>
-      <div class="mb-6">
+      <div >
         <Items v-model:items="itemList" />
-      </div> 
+      </div>
+
+
       <button @click="generateQuotation" class="bg-purple-500 text-white px-4 py-2 rounded">
        產出報價單
       </button> 
       <label class = "m-2" for="checkbox">工料分離</label>
-           <input
-        type="checkbox"
-        v-model="isSep"
-        class="m-1 h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded"
-      />
-   <div class="result-container mt-6 p-4 bg-green-50 rounded-lg w-full"> 
-    <!-- 表頭-->
-    
-    <QuotationHeader 
-      :customer="customer"
-      :tel="tel"
-      :fax="fax"
-      :contacter="contacter"
-      :add="add"    />
+        <input
+          type="checkbox"
+          v-model="isSep"
+          class="m-1 h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded"
+        />
+     <div class="result-container mt-6 p-1 bg-green-50 rounded-lg w-full"> 
+            <!-- 表頭-->
+          
+          <QuotationHeader 
+            :customer="customer"
+            :tel="tel"
+            :fax="fax"
+            :contacter="contacter"
+            :add="add"    />
 
-   
-     <QuotationTable v-if="!isSep"
-      :filteredResults="filteredResults"
-      :filteredItems="filteredItems"
-      :totalSubtotal="totalSubtotal"
-    />
-    <WMSTable v-if="isSep"
-      :sepPrice="sepPrice"
-      :filteredResults="filteredResults"
-      :filteredItems="filteredItems"
-      :totalSubtotal2="totalSubtotal2"  />
-    
-    
-    </div>
-  </div>
+        
+          <QuotationTable v-if="!isSep"
+            :filteredResults="filteredResults"
+            :filteredItems="filteredItems"
+            :totalSubtotal="totalSubtotal"
+          />
+          <WMSTable v-if="isSep"
+            :sepPrice="sepPrice"
+            :filteredResults="filteredResults"
+            :filteredItems="filteredItems"
+            :totalSubtotal2="totalSubtotal2"  />
+          
+          
+      </div>
+ </div>
 </template>
 
 <script>
@@ -281,6 +287,9 @@ import { applySeparationItems } from './Composables/autoSeparationLogic.js'; // 
 import DoorFront from './components/DoorFront.vue';
 import Wall from './components/Wall.vue';
 import styleText from './assets/style.css?raw';
+
+import Test from './components/Test.vue'; 
+ 
 
 
 // import WMSTable from './components/WMSTable.vue';
@@ -332,9 +341,8 @@ const calculate = async () => {
 
 export default {
   name: 'App',
-  components: { One, L, M, Iland, Items ,Leg, QuotationHeader, QuotationTable , WMSTable, Wrap, DoorFront, Wall },
+  components: { One, L, M, Iland, Items ,Leg, QuotationHeader, QuotationTable , WMSTable, Wrap, DoorFront, Wall,Test },
   setup() {
-   
 
   const applyUnifiedPrice = () => {
   const price = parseInt(unifiedPrice.value);
@@ -695,9 +703,32 @@ const fillDetails = () => {
 
 </script>
 
-<style scoped>
 
+<style scoped>
 .text-left {
   text-align: left !important;
+}
+/* 新增響應式排版：讓卡片在桌機三欄、橫向手機二欄、直式手機一欄 */
+:deep(.one-card-container) {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+  width: 100%;        /* 保證不超出 */
+  max-width: 100%;    /* 限制最大 */
+  overflow-x: hidden; /* 預防橫向 overflow */
+}
+
+
+@media (min-width: 640px) {
+  :deep(.one-card-container) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  :deep(.one-card-container) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
 }
 </style>

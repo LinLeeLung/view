@@ -1,84 +1,70 @@
 <template>
-  <div class="bg-white p-4 rounded-lg shadow-md min-w-[450px]">
-    <div class="flex items-center mb-2 space-x-2">
-      <input
-        type="checkbox"
-        v-model="isEnabled"
-        class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded"
-      />
-      <h2 class="text-md font-semibold text-gray-700">一字型</h2>
+  <div class="bg-white p-1 rounded-lg shadow-md w-full min-w-0">
+    <!-- 頂部選項列 -->
+    <div class="flex flex-wrap gap-2 mb-2 items-center text-sm">
+      <input type="checkbox" v-model="isEnabled" class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded" />
+      <h2 class="font-semibold text-gray-700">一字型</h2>
 
-      <label class="w-8 font-medium text-gray-600 text-sm">顏色</label>
-      <input
-        v-model="form.color"
-        type="text"
-        class="w-16 p-1 border rounded-md focus:ring-1 focus:ring-green-500 text-sm"
-        :disabled="!isEnabled"
-      />
+      <label class="whitespace-nowrap">顏色</label>
+      <input v-model="form.color" type="text" class="w-[64px] p-1 border rounded-md focus:ring-1 focus:ring-green-500" :disabled="!isEnabled" />
 
-      <label class="w-8  text-sm font-medium text-gray-600">摘要</label>
-      <input
-        v-model="form.sumary"
-        type="text"
-        class="w-20 p-1 border rounded-md text-sm"
-        :disabled="!isEnabled"
-      />
-      <label class="w-8  text-md font-medium text-gray-600">單開</label>
-      <input
-        v-model="form.oneOpen"
-        type="checkbox"
-        class="w-5 p-1 border rounded-md text-sm"
-        :disabled="!isEnabled"
-      />
-      <label class="w-8  text-md font-medium text-gray-600">雙開</label>
-      <input
-        v-model="form.duOpen"
-        type="checkbox"
-        class=" p-1 border rounded-md text-sm"
-        :disabled="!isEnabled"
-      />
+      <label class="whitespace-nowrap">摘要</label>
+      <input v-model="form.sumary" type="text" class="w-[80px] p-1 border rounded-md" :disabled="!isEnabled" />
 
+      <label class="whitespace-nowrap">單開</label>
+      <input v-model="form.oneOpen" type="checkbox" class="h-4 w-4" :disabled="!isEnabled" />
+
+      <label class="whitespace-nowrap">雙開</label>
+      <input v-model="form.duOpen" type="checkbox" class="h-4 w-4" :disabled="!isEnabled" />
     </div>
 
-    <table class="w-full table-fixed">
-      <thead>
-        <tr class="text-sm text-left text-gray-600">
-          <th class="w-1/6">長度</th>
-          <th class="w-1/6">深度</th>
-          <th class="w-1/6">前沿</th>
-          <th class="w-1/6">背牆</th>
-          <th class="w-1/6">倒包</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><input v-model.number="form.length" type="number" class="w-full p-1 border rounded-md text-sm" :disabled="!isEnabled" /></td>
-          <td><input v-model.number="form.depth" type="number" class="w-full p-1 border rounded-md text-sm" :disabled="!isEnabled" /></td>
-          <td><input v-model.number="form.frontEdge" type="number" class="w-full p-1 border rounded-md text-sm" :disabled="!isEnabled" /></td>
-          <td><input v-model.number="form.backWall" type="number" class="w-full p-1 border rounded-md text-sm" :disabled="!isEnabled" /></td>
-          <td><input v-model.number="form.wrapBack" type="number" class="w-full p-1 border rounded-md text-sm" :disabled="!isEnabled" /></td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- 表格改為 Grid -->
+    <div class="grid grid-cols-5 gap-2 text-sm">
+      <label class="text-gray-600 text-center">長度</label>
+      <label class="text-gray-600 text-center">深度</label>
+      <label class="text-gray-600 text-center">前沿</label>
+      <label class="text-gray-600 text-center">背牆</label>
+      <label class="text-gray-600 text-center">倒包</label>
 
-    <div class="flex items-center mt-4 space-x-4">
-      <div class="flex items-center space-x-2">
-        <label class="text-sm font-medium text-gray-600">板材極限 (cm)</label>
-        <input v-model.number="form.limit" type="number" class="w-12 p-1 border rounded-md text-sm" :disabled="!isEnabled" min="60" />
+      <input v-model.number="form.length" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.depth" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.frontEdge" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.backWall" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.wrapBack" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+    </div>
+    <!-- 下方選項列 -->
+    <div class="flex flex-wrap gap-4 mt-4 text-sm">
+      <div class="flex items-center space-x-1">
+        <label class="whitespace-nowrap">板材極限 (cm)</label>
+        <input v-model.number="form.limit" type="number" class="w-[60px] p-1 border rounded-md" :disabled="!isEnabled" min="60" />
       </div>
-
-      <div class="flex items-center space-x-2">
-        <label class="text-sm font-medium text-gray-600">單價</label>
-        <input v-model.number="form.unitPrice" type="number" class="w-16 p-1 border rounded-md text-sm" :disabled="!isEnabled" />
+      <div class="flex items-center space-x-1">
+        <label class="whitespace-nowrap">單價</label>
+        <input v-model.number="form.unitPrice" type="number" class="w-[72px] p-1 border rounded-md" :disabled="!isEnabled" />
       </div>
-
-      <div class="flex items-center space-x-2">
-        <label class="text-sm font-medium text-gray-600">備註</label>
-        <input v-model="form.note" type="text" class="w-20 p-1 border rounded-md text-sm" :disabled="!isEnabled" />
+      <div class="flex items-center space-x-1">
+        <label class="whitespace-nowrap">備註</label>
+        <input v-model="form.note" type="text" class="w-[100px] p-1 border rounded-md" :disabled="!isEnabled" />
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 新增響應式排版：讓卡片在桌機三欄排列，在手機單欄排列 */
+:deep(.one-card-container) {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  :deep(.one-card-container) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+</style>
+
 
 <script>
 import { ref, watch } from 'vue';

@@ -5,8 +5,8 @@
 
 body, .result-container {
   font-family: "DFKai-SB", "標楷體", DFKai-SB, "KaiTi", serif;
-  margin: 5px;
-  padding: 5px;
+  margin: 0px;
+  padding: 0px;
 }
 
 /* ✅ 報表容器樣式 */
@@ -121,3 +121,60 @@ h1, h3 {
   width: 130px;
 }
 .wide-col { width: 120px; }
+@media (max-width: 768px) {
+  /* 手機排版用的外框縮排與字體 */
+  .result-container {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  /* 表格手機版橫向捲動 */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    width: 100%;
+  }
+
+  th, td {
+    padding: 2px;
+    font-size: 13px;
+  }
+
+  /* 可選：讓表格每欄都對齊左側 */
+  th, td {
+    text-align: left !important;
+  }
+
+  /* 若欄位太多，讓表格可滑動 */
+  .table-wrapper {
+    overflow-x: auto;
+  }
+}
+
+.text-left {
+  text-align: left !important;
+}
+/* 新增響應式排版：讓卡片在桌機三欄、橫向手機二欄、直式手機一欄 */
+:deep(.one-card-container) {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+  width: 100%;        /* 保證不超出 */
+  max-width: 100%;    /* 限制最大 */
+  overflow-x: hidden; /* 預防橫向 overflow */
+}
+
+
+@media (min-width: 640px) {
+  :deep(.one-card-container) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  :deep(.one-card-container) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+}

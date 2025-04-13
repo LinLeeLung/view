@@ -2,7 +2,7 @@
  
 
 
-  <div class="container p-6">
+  <div class="container p-2">
     <div class="text-center mb-6">
       <h1 class="text-2xl font-bold text-green-600">峻晟會計專用估價1</h1>
     </div>

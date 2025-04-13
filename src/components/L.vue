@@ -1,165 +1,66 @@
 <template>
-  <div class="bg-white p-4 rounded-lg shadow-md  ">
-    <div class="flex items-center mb-4">
-      <input
-        type="checkbox"
-        v-model="isEnabled"
-        class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded mr-2"
-      />
-      <h2 class="text-lg font-semibold text-gray-700">L型</h2>
-      <label class="w-8 m-2 text-gray-600">顏色</label>
-      <input
-        v-model="form.color"
-        type="text"
-        class="w-16 p-1 border rounded-md focus:ring-1 focus:ring-green-500"
-        :disabled="!isEnabled"
-      />
-      <label class="m-2 text-sm font-medium text-gray-600">摘要</label>
-      <input
-        v-model="form.sumary"
-        type="text"
-        class="w-20 p-1 border rounded-md text-sm"
-        :disabled="!isEnabled"
-      />
-      <label class="w-8 m-2 text-md font-medium text-gray-600">1開</label>
-      <input
-        v-model="form.oneOpen"
-        type="checkbox"
-        class="w-5 p-1 border rounded-md text-sm"
-        :disabled="!isEnabled"
-      />
-      <label class="w-8 m-2 text-md font-medium text-gray-600">2開</label>
-      <input
-        v-model="form.duOpen"
-        type="checkbox"
-        class=" p-1 border rounded-md text-sm"
-        :disabled="!isEnabled"
-      />
+  <div class="bg-white p-4 rounded-lg shadow-md w-full min-w-0 max-w-[500px]">
+    <!-- 頂部選項列 -->
+    <div class="flex flex-wrap gap-2 mb-2 items-center text-sm">
+      <input type="checkbox" v-model="isEnabled" class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded" />
+      <h2 class="font-semibold text-gray-700">L型</h2>
+
+      <label class="whitespace-nowrap">顏色</label>
+      <input v-model="form.color" type="text" class="w-[64px] p-1 border rounded-md focus:ring-1 focus:ring-green-500" :disabled="!isEnabled" />
+
+      <label class="whitespace-nowrap">摘要</label>
+      <input v-model="form.sumary" type="text" class="w-[80px] p-1 border rounded-md" :disabled="!isEnabled" />
+
+      <label class="whitespace-nowrap">單開</label>
+      <input v-model="form.oneOpen" type="checkbox" class="h-4 w-4" :disabled="!isEnabled" />
+
+      <label class="whitespace-nowrap">雙開</label>
+      <input v-model="form.duOpen" type="checkbox" class="h-4 w-4" :disabled="!isEnabled" />
     </div>
 
-    <table class="w-full">
-      <thead>
-        <tr>
-          <th></th>
-          <th>長度</th>
-          <th>深度</th>
-          <th>前沿</th>
-          <th>背牆</th>
-          <th>倒包</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>檯面 1</td>
-          <td>
-            <input
-              v-model.number="form.length1"
-              type="number"
-              class="w-16 p-1 border rounded-md focus:ring-1 focus:ring-green-500"
-              :disabled="!isEnabled"
-            />
-          </td>
-          <td>
-            <input
-              v-model.number="form.depth1"
-              type="number"
-              class="w-16 p-1 border rounded-md focus:ring-1 focus:ring-green-500"
-              :disabled="!isEnabled"
-            />
-          </td>
-          <td>
-            <input
-              v-model.number="form.frontEdge1"
-              type="number"
-              class="w-16 p-1 border rounded-md focus:ring-1 focus:ring-green-500"
-              :disabled="!isEnabled"
-            />
-          </td>
-          <td>
-            <input
-              v-model.number="form.backWall1"
-              type="number"
-              class="w-16 p-1 border rounded-md focus:ring-1 focus:ring-green-500"
-              :disabled="!isEnabled"
-            />
-          </td>
-          <td>
-            <input
-              v-model.number="form.wrapBack1"
-              type="number"
-              class="w-16 p-1 border rounded-md focus:ring-1 focus:ring-green-500"
-              :disabled="!isEnabled"
-            />
-          </td>
-        </tr>
-        <tr>
-          <td>檯面 2</td>
-          <td>
-            <input
-              v-model.number="form.length2"
-              type="number"
-              class="w-16 p-1 border rounded-md focus:ring-1 focus:ring-green-500"
-              :disabled="!isEnabled"
-            />
-          </td>
-          <td>
-            <input
-              v-model.number="form.depth2"
-              type="number"
-              class="w-16 p-1 border rounded-md focus:ring-1 focus:ring-green-500"
-              :disabled="!isEnabled"
-            />
-          </td>
-          <td>
-            <input
-              v-model.number="form.frontEdge2"
-              type="number"
-              class="w-16 p-1 border rounded-md focus:ring-1 focus:ring-green-500"
-              :disabled="!isEnabled"
-            />
-          </td>
-          <td>
-            <input
-              v-model.number="form.backWall2"
-              type="number"
-              class="w-16 p-1 border rounded-md focus:ring-1 focus:ring-green-500"
-              :disabled="!isEnabled"
-            />
-          </td>
-          <td>
-            <input
-              v-model.number="form.wrapBack2"
-              type="number"
-              class="w-16 p-1 border rounded-md focus:ring-1 focus:ring-green-500"
-              :disabled="!isEnabled"
-            />
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- 表格改為 Grid -->
+    <div class="text-sm grid grid-cols-6 gap-2 mb-1 text-center font-semibold text-gray-600">
+      <span></span>
+      <span>長度</span>
+      <span>深度</span>
+      <span>前沿</span>
+      <span>背牆</span>
+      <span>倒包</span>
+    </div>
+    <div class="grid grid-cols-6 gap-2 text-sm mb-2">
+      <span class="text-gray-600">檯面1</span>
+      <input v-model.number="form.length1" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.depth1" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.frontEdge1" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.backWall1" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.wrapBack1" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
 
-    <div class="flex items-center mt-4">
-      <label class="mr-2 text-gray-600">板材極限 (cm)</label>
-      <input
-        v-model.number="form.limit"
-        type="number"
-        class="w-12 p-1 border rounded-md focus:ring-1 focus:ring-green-500"
-        :disabled="!isEnabled"
-      />
-      <label class="ml-4 mr-2 text-gray-600">單價</label>
-      <input
-        v-model.number="form.unitPrice"
-        type="number"
-        class="w-16 p-1 border rounded-md focus:ring-1 focus:ring-green-500"
-        :disabled="!isEnabled"
-      />
-      <div class="flex items-center space-x-2">
-        <label class="text-sm font-medium text-gray-600">備註</label>
-        <input v-model="form.note" type="text" class="w-20 p-1 border rounded-md text-sm" :disabled="!isEnabled" />
+      <span class="text-gray-600">檯面2</span>
+      <input v-model.number="form.length2" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.depth2" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.frontEdge2" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.backWall2" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.wrapBack2" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+    </div>
+
+    <!-- 下方選項列 -->
+    <div class="flex flex-wrap gap-4 mt-4 text-sm">
+      <div class="flex items-center space-x-1">
+        <label class="whitespace-nowrap">板材極限 (cm)</label>
+        <input v-model.number="form.limit" type="number" class="w-[60px] p-1 border rounded-md" :disabled="!isEnabled" min="60" />
+      </div>
+      <div class="flex items-center space-x-1">
+        <label class="whitespace-nowrap">單價</label>
+        <input v-model.number="form.unitPrice" type="number" class="w-[72px] p-1 border rounded-md" :disabled="!isEnabled" />
+      </div>
+      <div class="flex items-center space-x-1">
+        <label class="whitespace-nowrap">備註</label>
+        <input v-model="form.note" type="text" class="w-[100px] p-1 border rounded-md" :disabled="!isEnabled" />
       </div>
     </div>
   </div>
 </template>
+
 <script>
 import { ref, watch } from 'vue';
 
