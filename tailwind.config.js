@@ -8,5 +8,9 @@ export default {
       extend: {},
     },
     plugins: [],
+    future: {
+    // ✅ 關閉 oklch 色彩函數
+    useOklchColor: false
+  }
   }
   

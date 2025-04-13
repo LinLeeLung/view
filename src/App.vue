@@ -77,8 +77,8 @@
            >
             統一顏色
            </button>
-           <button @click="generateQuotation" class="m-1 p-1 bg-purple-500 text-white rounded hover:bg-purple-600">
-            產出報價單
+           <button @click="generateQuotation1" class="m-1 p-1 bg-purple-500 text-white rounded hover:bg-purple-600">
+            電腦報價單
            </button>
            <label class = "m-1" for="checkbox">工料分離</label>
            <input
@@ -233,7 +233,7 @@
 
 
       <button @click="generateQuotation" class="bg-purple-500 text-white px-4 py-2 rounded">
-       產出報價單
+       手機報價單
       </button> 
       <label class = "m-2" for="checkbox">工料分離</label>
         <input
@@ -241,7 +241,8 @@
           v-model="isSep"
           class="m-1 h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded"
         />
-     <div class="result-container mt-6 p-1 bg-green-50 rounded-lg w-full"> 
+     <div class="result-container" style="--tw-bg-opacity: 1; background-color: white !important;">
+
             <!-- 表頭-->
           
           <QuotationHeader 
@@ -268,7 +269,7 @@
  </div>
 </template>
 
-<script>
+<script >
 
 import { ref, computed ,onMounted, watch} from 'vue';
 import One from './components/One.vue';
@@ -288,15 +289,9 @@ import DoorFront from './components/DoorFront.vue';
 import Wall from './components/Wall.vue';
 import styleText from './assets/style.css?raw';
 
-import Test from './components/Test.vue'; 
- 
 
-
-// import WMSTable from './components/WMSTable.vue';
-// const cssUrl = new URL("@/public/style.css", import.meta.url).href;
-
-
-const generateQuotation = () => {
+import html2pdf from 'html2pdf.js';
+const generateQuotation1 = () => {
   // ✅ 取得結果區內容
   const resultContent = document.querySelector(".result-container");
 
@@ -332,6 +327,40 @@ const generateQuotation = () => {
   };
 };
 
+const generateQuotation = async () => {
+  const element = document.querySelector(".result-container");
+  if (!element) {
+    alert("找不到報價內容，請先產生報價！");
+    return;
+  }
+
+  await nextTick(); // 確保 Vue 渲染完
+
+  const opt = {
+    margin: 0.5,
+    filename: `報價單_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true
+    },
+    jsPDF: {
+      unit: 'mm',
+      format: 'a4',
+      orientation: 'portrait'
+    },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
+  html2pdf().set(opt).from(element).save();
+};
+
+
+
+
+
+
+
 
 const calculate = async () => {
   await nextTick(); // 確保 DOM 更新完成
@@ -341,7 +370,7 @@ const calculate = async () => {
 
 export default {
   name: 'App',
-  components: { One, L, M, Iland, Items ,Leg, QuotationHeader, QuotationTable , WMSTable, Wrap, DoorFront, Wall,Test },
+  components: { One, L, M, Iland, Items ,Leg, QuotationHeader, QuotationTable , WMSTable, Wrap, DoorFront, Wall },
   setup() {
 
   const applyUnifiedPrice = () => {
@@ -352,7 +381,7 @@ export default {
   }
   console.log(`✅ 統一價格: ${unifiedPrice.value}`);
 
-Object.keys(results.value).forEach((key) => {
+  Object.keys(results.value).forEach((key) => {
   // ✅ 不論是否勾選，都強制更新 unitPrice
   console.log(key, results.value[key]);
   results.value[key].unitPrice = unifiedPrice.value; // ✅ 統一價格
@@ -360,7 +389,7 @@ Object.keys(results.value).forEach((key) => {
   if(key.includes('假腳或門檻')){
     results.value[key].stonePrice = unifiedPrice.value // 假腳或門檻價格的石材價格
   }
-});
+  });
 
 nextTick(() => {
   calculate(); // ✅ 重新計算結果
@@ -687,6 +716,7 @@ const fillDetails = () => {
       contacter,
       add,
       generateQuotation,
+      generateQuotation1,
       fetchData,
       filterCustomers,
       fetchFiles,
