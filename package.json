@@ -6,8 +6,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "vite build && gh-pages -d dist"
-  },
+    "deploy": "vite build && gh-pages -d dist",
+    "fix-dev": "rm -rf node_modules && rm package-lock.json && npm install --force && npm run dev"
+    },
+  
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.3",
     "axios": "^1.8.4",
