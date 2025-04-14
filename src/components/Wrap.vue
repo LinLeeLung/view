@@ -49,34 +49,72 @@
 </template>
   
   <script>
-  import { ref, watch } from 'vue';
-  
-  export default {
-    name: 'Wrap',
-    props: {
-      sepPrice: { type: Number, default: 750 },
-      index: { type: [String, Number], required: true },
-      initialValue: { type: Object, default: () => ({}) }
-    },
-    emits: ['update-result'],
-    setup(props, { emit }) {
-      const form = ref({
-        length: 100,
-        depth: 60,
-        
-        unitPrice: 120,
-        color: 'CS-201',
-        
-        sumary: '',
-        note: ''
+import { ref, watch } from 'vue';
+
+export default {
+  name: 'Wrap',
+  props: {
+    sepPrice: { type: Number, default: 750 },
+    index: { type: [String, Number], required: true },
+    initialValue: { type: Object, default: () => ({}) }
+  },
+  emits: ['update-result'],
+  setup(props, { emit }) {
+    const form = ref({
+      length: 100,
+      depth: 60,
+      unitPrice: 120,
+      color: 'CS-201',
+      sumary: '',
+      note: ''
+    });
+
+    const isEnabled = ref(false);
+    let isLoading = false;
+
+    const calcOneSide = (length, depth) => {
+      let calcSteps = '';
+      let cmValue = 0;
+      let area = Math.round(length * depth / 900);
+      let calcSteps2 = `${length} * ${depth} / 900 = ${area}平方尺`;
+      cmValue = Math.round(length * depth / 60);
+      calcSteps = `${length} * ${depth} / 60 = ${cmValue.toFixed(0)} 公分`;
+      return { cmValue, calcSteps, area, calcSteps2 };
+    };
+
+    // ✅ ⬇ 提前定義 calculate，避免未初始化錯誤
+    const calculate = () => {
+      if (isLoading) return;
+
+      if (!isEnabled.value) {
+        emit('update-result', {
+          index: props.index,
+          isEnabled: false
+        });
+        return;
+      }
+
+      const f = form.value;
+      const { cmValue, calcSteps, area, calcSteps2 } = calcOneSide(f.length, f.depth);
+      const roundedValue = Math.round(cmValue);
+      const subtotal = roundedValue * f.unitPrice;
+      const subtotal2 = area * props.sepPrice;
+
+      emit('update-result', {
+        index: props.index,
+        isEnabled: true,
+        ...f,
+        roundedCentimeters: roundedValue,
+        subtotal: Math.round(subtotal),
+        calculationSteps: calcSteps.trim(),
+        calculationSteps2: calcSteps2.trim(),
+        area,
+        subtotal2: Math.round(subtotal2)
       });
-  
-      const isEnabled = ref(false);
-      let isLoading = false;
-  
-      watch(
-    () => props.initialValue,
-    (val) => {
+    };
+
+    // 載入初始值
+    watch(() => props.initialValue, (val) => {
       if (val) {
         isLoading = true;
         Object.keys(form.value).forEach((key) => {
@@ -84,107 +122,42 @@
             form.value[key] = val[key];
           }
         });
-        // ✅ 正確設置 isEnabled
-        isEnabled.value = val.isEnabled === undefined ? false : val.isEnabled;
-  
+        isEnabled.value = val.isEnabled ?? false;
         isLoading = false;
-  
-        // ✅ 如果已啟用，則強制執行一次計算
+
         if (isEnabled.value) {
           calculate();
         }
       }
-    },
-    { immediate: true, deep: true }
-  );
-  
-  
-  
-  
-  
-  // ✅ 當 isEnabled 變更時，觸發計算或 emit
-  watch(isEnabled, (val) => {
-    if (!isLoading) {
-      calculate(); // ✅ 勾選變更時觸發計算
-    } else if (!val) {
-      // ✅ 如果取消勾選，回傳 isEnabled: false
-      emit('update-result', {
-        index: props.index,
-        isEnabled: false
-      });
-    }
-  });
-  
-  
-      // ✅ 只在使用者操作時觸發 emit（calculate）
-      watch(
-        form,
-        () => {
-          if (isEnabled.value && !isLoading) {
-            calculate();
-          }
-        },
-        { deep: true }
-      );
-  
-      const calcOneSide = (length, depth) => {
-        
-        let calcSteps = '';
-        let cmValue = 0;
-        let area = Math.round(length * depth  / 900);
-        let calcSteps2 = `${length} * ${depth} / 900 = ${area}平方尺`;
-        cmValue = Math.round(length *depth/60);
-        calcSteps = `${length} * ${depth} /60 = ${cmValue.toFixed(0)} 公分`;
-        return { cmValue, calcSteps, area, calcSteps2 };
-      };
-  
-     const calculate = () => {
-    if (isLoading) {
-      return;
-    }
-  
-    // ✅ 如果未勾選，僅通知父層
-    if (!isEnabled.value) {
-      emit('update-result', {
-        index: props.index,
-        isEnabled: false
-      });
-      return;
-    }
-  
-    const f = form.value;
-    const { cmValue, calcSteps,area,calcSteps2 } = calcOneSide(
-      f.length,
-      f.depth,
-      
-    );
-  
-    const roundedValue = Math.round(cmValue);
-    const subtotal = roundedValue * f.unitPrice;
-    const subtotal2 = area * props.sepPrice;
-    
-    emit('update-result', {
-      index: props.index,
-      isEnabled: true,
-      ...f,
-      roundedCentimeters: roundedValue,
-      subtotal: Math.round(subtotal),
-      calculationSteps: calcSteps.trim(),
-      calculationSteps2: calcSteps2.trim(),
-      area:area,
-      subtotal2:Math.round(subtotal2)
-  
-  
+    }, { immediate: true, deep: true });
+
+    // 勾選變更時觸發
+    watch(isEnabled, (val) => {
+      if (!isLoading) {
+        calculate();
+      } else if (!val) {
+        emit('update-result', {
+          index: props.index,
+          isEnabled: false
+        });
+      }
     });
-  };
-  
-      return {
-        form,
-        isEnabled,
-        calculate,
-        isLoading
-      };
-    }
-  };
-  </script>
+
+    // 使用者變更表單時觸發
+    watch(form, () => {
+      if (isEnabled.value && !isLoading) {
+        calculate();
+      }
+    }, { deep: true });
+
+    return {
+      form,
+      isEnabled,
+      calculate,
+      isLoading
+    };
+  }
+};
+</script>
+
   

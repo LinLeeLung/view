@@ -115,113 +115,73 @@
       </div>
 
 
-            <!-- 一字型區塊 -->
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">一字型</h3>
-        <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
-                <div v-for="index in 6" :key="'One' + index" class="min-w-0 w-full overflow-hidden">
-            <One
-              :sepPrice="sepPrice"
-              :index="'一字型' + index"
-              :initialValue="resultsProxy['一字型' + index]"
-              @update-result="updateResult"
-            />
-          </div>
-        </div>
-      
+          <h3 class="text-lg font-semibold text-gray-700 mb-2">混合型</h3>
+          <!-- 📌 新增控制區（統一集中操作） -->
+<div class="flex flex-wrap gap-2 mb-4">
+  <button @click="addOneCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 一字型</button>
+  <button @click="addLCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ L 型</button>
+  <button @click="addMCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ M 型</button>
+  <button @click="addIslandCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 中島</button>
+  <button @click="addLegCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 側落腳</button>
+  <button @click="addWrapCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 倒包</button>
+  <button @click="addDoorCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 假腳</button>
+  <button @click="addWallCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 高背</button>
+</div>
 
-      <!-- L 型區塊 -->
-      <h3 class="text-lg font-semibold text-gray-700 mb-2">L 型</h3>
-      <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
-        <div v-for="index in 3" :key="'L' + index" class="min-w-0 w-full overflow-hidden">
-          <L :sepPrice="sepPrice" :index="'L' + index" :initialValue="resultsProxy['L' + index]" @update-result="updateResult" />
-        </div>
-      </div>
+  
 
-      <!-- M 型區塊 -->
-       <h3 class="text-lg font-semibold text-gray-700 mb-2">M 型</h3>
-      <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
-        <div v-for="index in 3" :key="'M' + index" class="min-w-0 w-full overflow-hidden">
-          <M
-          :sepPrice="sepPrice"
-          :index="'M' + index"
-          :initialValue="resultsProxy['M' + index]"
-          @update-result="updateResult"
-        />
+<!-- 📦 所有卡片統一顯示 -->
+<div class="one-card-container bg-blue-50 p-3 rounded grid gap-4">
+  <!-- 一字型卡片 -->
+  <div v-for="id in oneCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
+    <One :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
+    <button @click="removeOneCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
+  </div>
 
-        </div>
-      </div> 
+  <!-- L 型卡片 -->
+  <div v-for="id in lCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
+    <L :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
+    <button @click="removeLCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
+  </div>
 
-      <!-- 中島區塊 -->
-      <h3 class="text-lg font-semibold text-gray-700 mb-2">中島</h3>
-      <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
-        <div v-for="index in 3" :key="'Island' + index" class="min-w-0 w-full overflow-hidden">
-          <Iland
-          :sepPrice="sepPrice"
-          :index="'中島' + index"
-          :initialValue="resultsProxy['中島' + index]"
-          @update-result="updateResult"
-          />
+  <!-- M 型卡片 -->
+  <div v-for="id in mCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
+    <M :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
+    <button @click="removeMCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
+  </div>
 
-        </div>
-      
-      </div> 
+  <!-- 中島 -->
+  <div v-for="id in islandCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
+    <Iland :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
+    <button @click="removeIslandCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
+  </div>
 
-       <!-- 側落腳區塊 -->
-      <h3 class="text-lg font-semibold text-gray-700 mb-2">側落腳</h3>
-      <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
-        <div v-for="index in 3" :key="'Leg' + index" class="w-full sm:w-[48%] lg:w-[30%] min-w-0 overflow-x-auto">
-          <Leg
-          :sepPrice="sepPrice"
-          :index="'側落腳' + index"
-          :initialValue="resultsProxy['側落腳' + index]"
-          @update-result="updateResult"
-          />
+  <!-- 側落腳 -->
+  <div v-for="id in legCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
+    <Leg :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
+    <button @click="removeLegCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
+  </div>
 
-        </div>
-      
-      </div> 
+  <!-- 倒包 -->
+  <div v-for="id in wrapCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
+    <Wrap :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
+    <button @click="removeWrapCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
+  </div>
 
-      <!-- 倒包區塊 -->
-      <h3 class="text-lg font-semibold text-gray-700 mb-2">倒包</h3>
-      <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
-        <div v-for="index in 3" :key="'Wrap' + index" class="w-full sm:w-[48%] lg:w-[30%] min-w-0 overflow-x-auto">
-          <Wrap
-          :sepPrice="sepPrice"
-          :index="'倒包' + index"
-          :initialValue="resultsProxy['倒包' + index]"
-          @update-result="updateResult"
-          />
+  <!-- 假腳或門檻 -->
+  <div v-for="id in doorCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
+    <DoorFront :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
+    <button @click="removeDoorCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
+  </div>
 
-        </div>
-      </div>
-      
-      <!--假腳或門檻-->
+  <!-- 高背 -->
+  <div v-for="id in wallCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
+    <Wall :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
+    <button @click="removeWallCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
+  </div>
+</div>
 
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">假腳或門檻</h3>
-        <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
-          <div v-for="index in 3" :key="'DoorFront' + index" class="w-full sm:w-[48%] lg:w-[30%] min-w-0 overflow-x-auto">
-            <DoorFront
-           :sepPrice="sepPrice"
-           :index="'假腳或門檻' + index"
-           :initialValue="resultsProxy['假腳或門檻' + index]"
-           @update-result="updateResult"
-           />
-          </div>
-        </div>
-       
-        <!--高背-->
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">高背</h3>
-        <div class="one-card-container bg-blue-100 p-2 rounded mb-2">
-          <div v-for="index in 3" :key="'Wall' + index" class="w-full sm:w-[48%] lg:w-[30%] min-w-0 overflow-x-auto">
-            <Wall
-           :sepPrice="sepPrice"
-           :index="'高背' + index"
-           :initialValue="resultsProxy['高背' + index]"
-           @update-result="updateResult"
-           />
-          </div>
-        </div>  
-      
+
       
 
       <!-- 附加項目區塊 -->
@@ -270,7 +230,7 @@
 </template>
 
 <script >
-
+import { useDynamicCardList } from './composables/useDynamicCardList.js'
 import { ref, computed ,onMounted, watch} from 'vue';
 import One from './components/One.vue';
 import L from './components/L.vue';
@@ -290,7 +250,12 @@ import Wall from './components/Wall.vue';
 import styleText from './assets/style.css?raw';
 
 
+
 import html2pdf from 'html2pdf.js';
+
+
+
+
 const generateQuotation1 = () => {
   // ✅ 取得結果區內容
   const resultContent = document.querySelector(".result-container");
@@ -453,11 +418,77 @@ const applyUnifiedColor = () => {
     });
     watch([isSep, totalFrontEdgeLength], () => {
     applySeparationItems({ isSep, itemList, totalFrontEdgeLength });
-});
+   });
+ 
+// ⬇️ 引入自定義卡片管理 composable
 
 
+// 一字型
+const {
+  cardList: oneCardList,
+  addCard: addOneCard,
+  removeCard: removeOneCard,
+  restoreFromResults: restoreOneCardList
+} = useDynamicCardList('一字型', results)
 
-      const fetchCustomers = async () => {
+// L 型
+const {
+  cardList: lCardList,
+  addCard: addLCard,
+  removeCard: removeLCard,
+  restoreFromResults: restoreLCardList
+} = useDynamicCardList('L', results)
+
+// M 型
+const {
+  cardList: mCardList,
+  addCard: addMCard,
+  removeCard: removeMCard,
+  restoreFromResults: restoreMCardList
+} = useDynamicCardList('M', results)
+
+// 中島
+const {
+  cardList: islandCardList,
+  addCard: addIslandCard,
+  removeCard: removeIslandCard,
+  restoreFromResults: restoreIslandCardList
+} = useDynamicCardList('中島', results)
+
+// 側落腳
+const {
+  cardList: legCardList,
+  addCard: addLegCard,
+  removeCard: removeLegCard,
+  restoreFromResults: restoreLegCardList
+} = useDynamicCardList('側落腳', results)
+
+// 倒包
+const {
+  cardList: wrapCardList,
+  addCard: addWrapCard,
+  removeCard: removeWrapCard,
+  restoreFromResults: restoreWrapCardList
+} = useDynamicCardList('倒包', results)
+
+// 假腳或門檻
+const {
+  cardList: doorCardList,
+  addCard: addDoorCard,
+  removeCard: removeDoorCard,
+  restoreFromResults: restoreDoorCardList
+} = useDynamicCardList('假腳或門檻', results)
+
+// 高背
+const {
+  cardList: wallCardList,
+  addCard: addWallCard,
+  removeCard: removeWallCard,
+  restoreFromResults: restoreWallCardList
+} = useDynamicCardList('高背', results)
+
+
+const fetchCustomers = async () => {
         try {
             let response = await fetch("https://junchengstone.synology.me/acc/proxy.php");
             let data = await response.json();
@@ -471,6 +502,7 @@ const applyUnifiedColor = () => {
             console.error("無法獲取客戶資料：", error);
         }
       };
+
   onMounted(() => {
       console.log("正在獲取客戶資料...");
       fetchCustomers(); // 自動載入客戶資料
@@ -650,6 +682,17 @@ const fillDetails = () => {
       cuskeyword.value = data.cuskeyword || '';
       selectedCustomer.value = data.selectedCustomer || '';
       isSep.value = data.isSep || false;
+          // ⬇️ 還原所有卡片顯示狀態
+      restoreOneCardList();
+      restoreLCardList();
+      restoreMCardList();
+      restoreIslandCardList();
+      restoreLegCardList();
+      restoreWrapCardList();
+      restoreDoorCardList();
+      restoreWallCardList();
+
+
   }
 
     if (data.itemList) {
@@ -662,6 +705,8 @@ const fillDetails = () => {
   } catch (error) {
     message.value = '載入失敗: ' + error.message;
   }
+ 
+
 };
 
 
@@ -726,7 +771,47 @@ const fillDetails = () => {
       fillDetails,
       unifiedColor,
       isSep,
-      sepPrice
+      sepPrice,
+      // 一字型
+      oneCardList,
+      addOneCard,
+      removeOneCard,
+
+      // L 型
+      lCardList,
+      addLCard,
+      removeLCard,
+
+      // M 型
+      mCardList,
+      addMCard,
+      removeMCard,
+
+      // 中島
+      islandCardList,
+      addIslandCard,
+      removeIslandCard,
+
+      // 側落腳
+      legCardList,
+      addLegCard,
+      removeLegCard,
+
+      // 倒包
+      wrapCardList,
+      addWrapCard,
+      removeWrapCard,
+
+      // 假腳或門檻
+      doorCardList,
+      addDoorCard,
+      removeDoorCard,
+
+      // 高背
+      wallCardList,
+      addWallCard,
+      removeWallCard,
+
     };
   },
 };

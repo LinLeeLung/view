@@ -32,6 +32,7 @@
       <input v-model.number="form.backWall" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
       <input v-model.number="form.wrapBack" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
     </div>
+
     <!-- 下方選項列 -->
     <div class="flex flex-wrap gap-4 mt-4 text-sm">
       <div class="flex items-center space-x-1">
@@ -49,22 +50,6 @@
     </div>
   </div>
 </template>
-
-<style scoped>
-/* 新增響應式排版：讓卡片在桌機三欄排列，在手機單欄排列 */
-:deep(.one-card-container) {
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-@media (min-width: 768px) {
-  :deep(.one-card-container) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-</style>
-
 
 <script>
 import { ref, watch } from 'vue';
@@ -96,73 +81,17 @@ export default {
     const isEnabled = ref(false);
     let isLoading = false;
 
-    watch(
-  () => props.initialValue,
-  (val) => {
-    if (val) {
-      isLoading = true;
-      Object.keys(form.value).forEach((key) => {
-        if (val.hasOwnProperty(key)) {
-          form.value[key] = val[key];
-        }
-      });
-      // ✅ 正確設置 isEnabled
-      isEnabled.value = val.isEnabled === undefined ? false : val.isEnabled;
-
-      isLoading = false;
-
-      // ✅ 如果已啟用，則強制執行一次計算
-      if (isEnabled.value) {
-        calculate();
-      }
-    }
-  },
-  { immediate: true, deep: true }
-);
-
-
-
-
-
-// ✅ 當 isEnabled 變更時，觸發計算或 emit
-watch(isEnabled, (val) => {
-  if (!isLoading) {
-    calculate(); // ✅ 勾選變更時觸發計算
-  } else if (!val) {
-    // ✅ 如果取消勾選，回傳 isEnabled: false
-    emit('update-result', {
-      index: props.index,
-      isEnabled: false
-    });
-  }
-});
-
-
-    // ✅ 只在使用者操作時觸發 emit（calculate）
-    watch(
-      form,
-      () => {
-        if (isEnabled.value && !isLoading) {
-          calculate();
-        }
-      },
-      { deep: true }
-    );
-
-    const calcOneSide = (length, depth, frontEdge, backWall, wrapBack, limit,oneOpen,duOpen) => {
+    const calcOneSide = (length, depth, frontEdge, backWall, wrapBack, limit, oneOpen, duOpen) => {
       const thickness = depth + frontEdge + backWall + wrapBack;
-      let calcSteps = '';
       let cmValue = 0;
-      let area = Math.round((length * (depth + frontEdge + backWall + wrapBack)) / 900);
+      let calcSteps = '';
+      let area = Math.round((length * thickness) / 900);
       let calcSteps2 = `${length} * (${depth} + ${frontEdge} + ${backWall} + ${wrapBack}) / 900 = ${area}平方尺`;
-      let frontEdgeLength = 0;
-      frontEdgeLength = length;
-      if(oneOpen) {
-        frontEdgeLength = frontEdge+length
-      }
-      if (duOpen) {
-        frontEdgeLength = frontEdge * 2 + length ;
-      } 
+
+      let frontEdgeLength = length;
+      if (oneOpen) frontEdgeLength = frontEdge + length;
+      if (duOpen) frontEdgeLength = frontEdge * 2 + length;
+
       if (thickness < 48 && depth < 40) {
         cmValue = length * 0.85;
         calcSteps = `${length} * 0.85 = ${cmValue.toFixed(0)} 公分`;
@@ -180,54 +109,80 @@ watch(isEnabled, (val) => {
         cmValue = length;
         calcSteps = `${length} = ${cmValue.toFixed(0)} 公分`;
       }
-    
-      return { cmValue, calcSteps, area, calcSteps2 ,frontEdgeLength};
+
+      return { cmValue, calcSteps, area, calcSteps2, frontEdgeLength };
     };
 
-   const calculate = () => {
-  if (isLoading) {
-    return;
-  }
+    // ✅ ⬇ calculate 提前定義在所有 watch 之前
+    const calculate = () => {
+      if (isLoading) return;
 
-  // ✅ 如果未勾選，僅通知父層
-  if (!isEnabled.value) {
-    emit('update-result', {
-      index: props.index,
-      isEnabled: false
+      if (!isEnabled.value) {
+        emit('update-result', {
+          index: props.index,
+          isEnabled: false
+        });
+        return;
+      }
+
+      const f = form.value;
+      const { cmValue, calcSteps, area, calcSteps2, frontEdgeLength } = calcOneSide(
+        f.length, f.depth, f.frontEdge, f.backWall, f.wrapBack,
+        f.limit, f.oneOpen, f.duOpen
+      );
+
+      const roundedValue = Math.round(cmValue);
+      const subtotal = roundedValue * f.unitPrice;
+      const subtotal2 = area * props.sepPrice;
+
+      emit('update-result', {
+        index: props.index,
+        isEnabled: true,
+        ...f,
+        roundedCentimeters: roundedValue,
+        subtotal: Math.round(subtotal),
+        calculationSteps: calcSteps.trim(),
+        calculationSteps2: calcSteps2.trim(),
+        area,
+        subtotal2: Math.round(subtotal2),
+        frontEdgeLength
+      });
+    };
+
+    // ✅ 當初始值有變動時載入資料
+    watch(() => props.initialValue, (val) => {
+      if (val) {
+        isLoading = true;
+        Object.keys(form.value).forEach((key) => {
+          if (val.hasOwnProperty(key)) {
+            form.value[key] = val[key];
+          }
+        });
+        isEnabled.value = val.isEnabled ?? false;
+        isLoading = false;
+
+        if (isEnabled.value) calculate();
+      }
+    }, { immediate: true, deep: true });
+
+    // ✅ 勾選狀態變更時也要計算
+    watch(isEnabled, (val) => {
+      if (!isLoading) {
+        calculate();
+      } else if (!val) {
+        emit('update-result', {
+          index: props.index,
+          isEnabled: false
+        });
+      }
     });
-    return;
-  }
 
-  const f = form.value;
-  const { cmValue, calcSteps,area,calcSteps2,frontEdgeLength } = calcOneSide(
-    f.length,
-    f.depth,
-    f.frontEdge,
-    f.backWall,
-    f.wrapBack,
-    f.limit,
-    f.oneOpen,
-    f.duOpen
-  );
-
-  const roundedValue = Math.round(cmValue);
-  const subtotal = roundedValue * f.unitPrice;
-  const subtotal2 = area * props.sepPrice;
-  
-  emit('update-result', {
-    index: props.index,
-    isEnabled: true,
-    ...f,
-    roundedCentimeters: roundedValue,
-    subtotal: Math.round(subtotal),
-    calculationSteps: calcSteps.trim(),
-    calculationSteps2: calcSteps2.trim(),
-    area:area,
-    subtotal2:Math.round(subtotal2),  
-    frontEdgeLength: frontEdgeLength,
-
-  });
-};
+    // ✅ 表單資料變更時執行計算
+    watch(form, () => {
+      if (isEnabled.value && !isLoading) {
+        calculate();
+      }
+    }, { deep: true });
 
     return {
       form,
@@ -238,3 +193,17 @@ watch(isEnabled, (val) => {
   }
 };
 </script>
+
+<style scoped>
+:deep(.one-card-container) {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  :deep(.one-card-container) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+</style>
