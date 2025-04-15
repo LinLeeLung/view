@@ -695,14 +695,14 @@ const fillDetails = () => {
         return { id, type };
        });
 }
-      restoreOneCardList();
-      restoreLCardList();
-      restoreMCardList();
-      restoreIslandCardList();
-      restoreLegCardList();
-      restoreWrapCardList();
-      restoreDoorCardList();
-      restoreWallCardList();
+      // restoreOneCardList();
+      // restoreLCardList();
+      // restoreMCardList();
+      // restoreIslandCardList();
+      // restoreLegCardList();
+      // restoreWrapCardList();
+      // restoreDoorCardList();
+      // restoreWallCardList();
      
      
     }
