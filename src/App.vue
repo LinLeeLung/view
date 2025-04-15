@@ -638,6 +638,11 @@ const fetchData = async () => {
     message.value = '儲存失敗: ' + error.message;
   }
 };
+const detectTypeFromId = (id) => {
+  const knownTypes = ['一字型', 'L', 'M', '中島', '側落腳', '倒包', '假腳或門檻', '高背'];
+  return knownTypes.find(type => id.startsWith(type)) || '一字型';
+};
+
 const fillDetails = () => {
   if (selectedCustomer.value) {
     customer.value = selectedCustomer.value.name || "";
@@ -682,7 +687,14 @@ const fillDetails = () => {
               typeCounters.value[type] = num + 1;
             }
            });
-       }    
+       }
+       if (!data.cardOrderList && data.results) {
+       cardOrderList.value = Object.keys(data.results)
+        .map((id) => {
+         const type = detectTypeFromId(id); // 用 id 推出 type
+        return { id, type };
+       });
+}
       restoreOneCardList();
       restoreLCardList();
       restoreMCardList();
