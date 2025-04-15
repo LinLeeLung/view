@@ -78,7 +78,7 @@ export default {
       duOpen: false 
     });
 
-    const isEnabled = ref(false);
+    const isEnabled = ref(true);
     let isLoading = false;
 
     const calcOneSide = (length, depth, frontEdge, backWall, wrapBack, limit, oneOpen, duOpen) => {

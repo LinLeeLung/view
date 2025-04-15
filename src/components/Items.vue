@@ -1,27 +1,31 @@
 <template>
-  <div class="one-card-container">
-  <div
-    v-for="(item, index) in localItems"
-    :key="index"
-    class=""
-  >
-    <ItemRow :item="item" />
+  <div class="mb-2">
+    <label class="text-sm">
+      <input type="checkbox" v-model="showAll" class="mr-1" />
+      顯示所有項目
+    </label>
   </div>
-</div>
+  <div class="grid grid-cols-3 gap-2">
+    <ItemRow
+      v-for="(item, index) in filteredItems"
+      :key="index"
+      :item="item"
+      @update="() => emit('update:items', items)"
+    />
+  </div>
 </template>
 
 <script setup>
 import ItemRow from './ItemRow.vue';
-import { ref, watch, nextTick } from 'vue';
-
-const props = defineProps({
-  items: {
-    type: Array,
-    required: true
-  }
-});
-
+const props = defineProps({ items: Array });
 const emit = defineEmits(['update:items']);
+const showAll = ref(false);
+import { ref, watch, nextTick,computed } from 'vue';
+const filteredItems = computed(() =>
+  showAll.value ? props.items : props.items.filter(item => item.checked)
+);
+
+
 const localItems = ref([]);
 const isLoading = ref(false);
 let prevItems = JSON.stringify([]);
@@ -53,6 +57,11 @@ watch(
   },
   { deep: true }
 );
+watch(() => props.items, (newVal) => {
+  //console.log('📦 itemList updated in <Items>: ', newVal);
+}, { immediate: true, deep: true });
+
+
 </script>
 
 <style scoped>

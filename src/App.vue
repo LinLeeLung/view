@@ -117,68 +117,37 @@
 
           <h3 class="text-lg font-semibold text-gray-700 mb-2">混合型</h3>
           <!-- 📌 新增控制區（統一集中操作） -->
-<div class="flex flex-wrap gap-2 mb-4">
-  <button @click="addOneCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 一字型</button>
-  <button @click="addLCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ L 型</button>
-  <button @click="addMCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ M 型</button>
-  <button @click="addIslandCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 中島</button>
-  <button @click="addLegCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 側落腳</button>
-  <button @click="addWrapCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 倒包</button>
-  <button @click="addDoorCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 假腳</button>
-  <button @click="addWallCard" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 高背</button>
-</div>
+     <div class="flex flex-wrap gap-2 mb-4">
+      <button @click="addCard('一字型')" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 一字型</button>
+      <button @click="addCard('L')" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ L 型</button>
+      <button @click="addCard('M')" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ M 型</button>
+      <button @click="addCard('中島')" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 中島</button>
+      <button @click="addCard('側落腳')" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 側落腳</button>
+      <button @click="addCard('倒包')" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 倒包</button>
+      <button @click="addCard('假腳或門檻')" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 假腳</button>
+      <button @click="addCard('高背')" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">➕ 高背</button>
+     </div>
 
   
 
 <!-- 📦 所有卡片統一顯示 -->
 <div class="one-card-container bg-blue-50 p-3 rounded grid gap-4">
-  <!-- 一字型卡片 -->
-  <div v-for="id in oneCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
-    <One :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
-    <button @click="removeOneCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
-  </div>
-
-  <!-- L 型卡片 -->
-  <div v-for="id in lCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
-    <L :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
-    <button @click="removeLCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
-  </div>
-
-  <!-- M 型卡片 -->
-  <div v-for="id in mCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
-    <M :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
-    <button @click="removeMCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
-  </div>
-
-  <!-- 中島 -->
-  <div v-for="id in islandCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
-    <Iland :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
-    <button @click="removeIslandCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
-  </div>
-
-  <!-- 側落腳 -->
-  <div v-for="id in legCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
-    <Leg :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
-    <button @click="removeLegCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
-  </div>
-
-  <!-- 倒包 -->
-  <div v-for="id in wrapCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
-    <Wrap :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
-    <button @click="removeWrapCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
-  </div>
-
-  <!-- 假腳或門檻 -->
-  <div v-for="id in doorCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
-    <DoorFront :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
-    <button @click="removeDoorCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
-  </div>
-
-  <!-- 高背 -->
-  <div v-for="id in wallCardList" :key="id" class="relative border border-gray-300 rounded-lg p-2">
-    <Wall :sepPrice="sepPrice" :index="id" :initialValue="resultsProxy[id]" @update-result="updateResult" />
-    <button @click="removeWallCard(id)" class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">✖</button>
-  </div>
+  <template v-for="entry in cardOrderList" :key="entry.id">
+        <div class="relative border border-gray-300 rounded-lg p-2">
+          <div class="font-semibold text-sm text-gray-600 mb-1">{{ entry.id }}</div>
+          <component
+            :is="getComponent(entry.type)"
+            :index="entry.id"
+            :initialValue="resultsProxy[entry.id]"
+            :sepPrice="sepPrice"
+            @update-result="updateResult"
+          />
+          <button
+            @click="removeCard(entry.id, entry.type)"
+            class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600"
+          >✖</button>
+        </div>
+      </template>
 </div>
 
 
@@ -214,13 +183,13 @@
 
         
           <QuotationTable v-if="!isSep"
-            :filteredResults="filteredResults"
+            :filteredResults="orderedFilteredResults"
             :filteredItems="filteredItems"
             :totalSubtotal="totalSubtotal"
           />
           <WMSTable v-if="isSep"
             :sepPrice="sepPrice"
-            :filteredResults="filteredResults"
+            :filteredResults="orderedFilteredResults"
             :filteredItems="filteredItems"
             :totalSubtotal2="totalSubtotal2"  />
           
@@ -231,14 +200,14 @@
 
 <script >
 import { useDynamicCardList } from './composables/useDynamicCardList.js'
-import { ref, computed ,onMounted, watch} from 'vue';
+
 import One from './components/One.vue';
 import L from './components/L.vue';
 import M from './components/M.vue';
 import Iland from './components/Iland.vue';
 import Items from './components/Items.vue';
 import axios from 'axios'; // Import axios for API requests
-import { nextTick } from 'vue';
+
 import Leg from './components/Leg.vue';
 import QuotationHeader from './components/QuotationHeader.vue';
 import QuotationTable from './components/QuotationTable.vue';
@@ -248,10 +217,12 @@ import { applySeparationItems } from './Composables/autoSeparationLogic.js'; // 
 import DoorFront from './components/DoorFront.vue';
 import Wall from './components/Wall.vue';
 import styleText from './assets/style.css?raw';
-
-
-
 import html2pdf from 'html2pdf.js';
+import { ref, computed, nextTick, onMounted, watch } from 'vue';
+
+
+
+
 
 
 
@@ -338,6 +309,81 @@ export default {
   components: { One, L, M, Iland, Items ,Leg, QuotationHeader, QuotationTable , WMSTable, Wrap, DoorFront, Wall },
   setup() {
 
+  const orderedFilteredResults = computed(() => {
+  return Object.fromEntries(
+    cardOrderList.value
+      .map(({ id }) => [id, results.value[id]])
+      .filter(([_, r]) => r?.isEnabled)
+  );
+});
+ 
+   const cardOrderList = ref([]);
+    const typeCounters = ref({
+      '一字型': 1,
+      'L': 1,
+      'M': 1,
+      '中島': 1,
+      '側落腳': 1,
+      '倒包': 1,
+      '假腳或門檻': 1,
+      '高背': 1,
+    });
+
+    const oneCardList = ref([]);
+    const lCardList = ref([]);
+    const mCardList = ref([]);
+    const islandCardList = ref([]);
+    const legCardList = ref([]);
+    const wrapCardList = ref([]);
+    const doorCardList = ref([]);
+    const wallCardList = ref([]);
+   const addCard = (type) => {
+      const id = `${type}-${typeCounters.value[type]++}`;
+      switch (type) {
+        case '一字型': oneCardList.value.push(id); break;
+        case 'L': lCardList.value.push(id); break;
+        case 'M': mCardList.value.push(id); break;
+        case '中島': islandCardList.value.push(id); break;
+        case '側落腳': legCardList.value.push(id); break;
+        case '倒包': wrapCardList.value.push(id); break;
+        case '假腳或門檻': doorCardList.value.push(id); break;
+        case '高背': wallCardList.value.push(id); break;
+      }
+      cardOrderList.value.push({ id, type });
+    };
+
+    const removeCard = (id, type) => {
+      const listMap = {
+        '一字型': oneCardList,
+        'L': lCardList,
+        'M': mCardList,
+        '中島': islandCardList,
+        '側落腳': legCardList,
+        '倒包': wrapCardList,
+        '假腳或門檻': doorCardList,
+        '高背': wallCardList,
+      };
+      const list = listMap[type];
+      const index = list.value.indexOf(id);
+      if (index > -1) list.value.splice(index, 1);
+      cardOrderList.value = cardOrderList.value.filter((c) => c.id !== id);
+      delete results.value[id];
+    };
+
+    const getComponent = (type) => {
+      return {
+        '一字型': One,
+        'L': L,
+        'M': M,
+        '中島': Iland,
+        '側落腳': Leg,
+        '倒包': Wrap,
+        '假腳或門檻': DoorFront,
+        '高背': Wall,
+      }[type];
+    };
+
+
   const applyUnifiedPrice = () => {
   const price = parseInt(unifiedPrice.value);
   if (isNaN(price) || price <= 0) {
@@ -423,69 +469,7 @@ const applyUnifiedColor = () => {
 // ⬇️ 引入自定義卡片管理 composable
 
 
-// 一字型
-const {
-  cardList: oneCardList,
-  addCard: addOneCard,
-  removeCard: removeOneCard,
-  restoreFromResults: restoreOneCardList
-} = useDynamicCardList('一字型', results)
 
-// L 型
-const {
-  cardList: lCardList,
-  addCard: addLCard,
-  removeCard: removeLCard,
-  restoreFromResults: restoreLCardList
-} = useDynamicCardList('L', results)
-
-// M 型
-const {
-  cardList: mCardList,
-  addCard: addMCard,
-  removeCard: removeMCard,
-  restoreFromResults: restoreMCardList
-} = useDynamicCardList('M', results)
-
-// 中島
-const {
-  cardList: islandCardList,
-  addCard: addIslandCard,
-  removeCard: removeIslandCard,
-  restoreFromResults: restoreIslandCardList
-} = useDynamicCardList('中島', results)
-
-// 側落腳
-const {
-  cardList: legCardList,
-  addCard: addLegCard,
-  removeCard: removeLegCard,
-  restoreFromResults: restoreLegCardList
-} = useDynamicCardList('側落腳', results)
-
-// 倒包
-const {
-  cardList: wrapCardList,
-  addCard: addWrapCard,
-  removeCard: removeWrapCard,
-  restoreFromResults: restoreWrapCardList
-} = useDynamicCardList('倒包', results)
-
-// 假腳或門檻
-const {
-  cardList: doorCardList,
-  addCard: addDoorCard,
-  removeCard: removeDoorCard,
-  restoreFromResults: restoreDoorCardList
-} = useDynamicCardList('假腳或門檻', results)
-
-// 高背
-const {
-  cardList: wallCardList,
-  addCard: addWallCard,
-  removeCard: removeWallCard,
-  restoreFromResults: restoreWallCardList
-} = useDynamicCardList('高背', results)
 
 
 const fetchCustomers = async () => {
@@ -628,6 +612,7 @@ const fetchData = async () => {
     : `${newFilename.value}.json`;
 
   const content = {
+    cardOrderList: cardOrderList.value,
     results: results.value,
     itemList: itemList.value,
     customer: customer.value,
@@ -666,12 +651,18 @@ const fillDetails = () => {
     const loadFile = async () => {
   if (!selectedFile.value) return;
   try {
-    const response = await axios.get(`${API_BASE_URL}?action=load`, {
-      params: { filename: selectedFile.value },
-    });
+      const response = await axios.get(`${API_BASE_URL}?action=load`, {
+        params: { filename: selectedFile.value },
+      });
 
     const data = response.data.content;
-
+     if (data.itemList && Array.isArray(data.itemList)) {
+       // 用新陣列賦值，強迫 Vue tracking
+      itemList.value = data.itemList.map(item => ({ ...item }));
+      //  console.log('✅ itemList restored:', itemList.value);
+     } 
+     
+    // console.log(data.itemList)
     if (data.results) {
       results.value = { ...data.results }; // ✅ 重新賦值，清空舊資料
       customer.value = data.customer || '';
@@ -683,6 +674,15 @@ const fillDetails = () => {
       selectedCustomer.value = data.selectedCustomer || '';
       isSep.value = data.isSep || false;
           // ⬇️ 還原所有卡片顯示狀態
+      if (data.cardOrderList) {
+          cardOrderList.value = data.cardOrderList;
+          data.cardOrderList.forEach(({ id, type }) => {
+            const num = parseInt(id.split('-')[1]);
+            if (!isNaN(num) && num >= typeCounters.value[type]) {
+              typeCounters.value[type] = num + 1;
+            }
+           });
+       }    
       restoreOneCardList();
       restoreLCardList();
       restoreMCardList();
@@ -691,13 +691,11 @@ const fillDetails = () => {
       restoreWrapCardList();
       restoreDoorCardList();
       restoreWallCardList();
-
-
-  }
-
-    if (data.itemList) {
-      itemList.value = JSON.parse(JSON.stringify(data.itemList)); // ✅ 防止引用關聯
+     
+     
     }
+
+    
 
 
     message.value = `檔案 ${selectedFile.value} 已載入`;
@@ -772,45 +770,13 @@ const fillDetails = () => {
       unifiedColor,
       isSep,
       sepPrice,
-      // 一字型
-      oneCardList,
-      addOneCard,
-      removeOneCard,
-
-      // L 型
-      lCardList,
-      addLCard,
-      removeLCard,
-
-      // M 型
-      mCardList,
-      addMCard,
-      removeMCard,
-
-      // 中島
-      islandCardList,
-      addIslandCard,
-      removeIslandCard,
-
-      // 側落腳
-      legCardList,
-      addLegCard,
-      removeLegCard,
-
-      // 倒包
-      wrapCardList,
-      addWrapCard,
-      removeWrapCard,
-
-      // 假腳或門檻
-      doorCardList,
-      addDoorCard,
-      removeDoorCard,
-
-      // 高背
-      wallCardList,
-      addWallCard,
-      removeWallCard,
+      cardOrderList,
+      addCard,
+      removeCard,
+      getComponent,
+      orderedFilteredResults
+     
+      
 
     };
   },
