@@ -191,8 +191,14 @@ export default {
       });
     };
 
-    watch(form, calculate, { deep: true });
-    watch(isEnabled, calculate);
+      watch(form, () => {
+        if (!isLoading.value) calculate();
+      }, { deep: true });
+
+      watch(isEnabled, () => {
+        if (!isLoading.value) calculate();
+      });
+
 
     return {
       form,

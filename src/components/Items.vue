@@ -10,32 +10,34 @@
       v-for="(item, index) in filteredItems"
       :key="index"
       :item="item"
-      @update="() => emit('update:items', items)"
+      @update="onItemUpdate(index)"
     />
   </div>
 </template>
 
 <script setup>
+import { ref, watch, computed, nextTick } from 'vue';
 import ItemRow from './ItemRow.vue';
+
 const props = defineProps({ items: Array });
 const emit = defineEmits(['update:items']);
+
 const showAll = ref(false);
-import { ref, watch, nextTick,computed } from 'vue';
-const filteredItems = computed(() =>
-  showAll.value ? props.items : props.items.filter(item => item.checked)
-);
-
-
 const localItems = ref([]);
 const isLoading = ref(false);
 let prevItems = JSON.stringify([]);
 
+const filteredItems = computed(() =>
+  showAll.value ? localItems.value : localItems.value.filter(item => item.checked)
+);
+
+// ⬇️ 當 props 改變 → 同步到 localItems
 watch(
   () => props.items,
   (val) => {
     if (val) {
       isLoading.value = true;
-      localItems.value = JSON.parse(JSON.stringify(val));
+      localItems.value = JSON.parse(JSON.stringify(val)); // 深拷貝
       prevItems = JSON.stringify(localItems.value);
       isLoading.value = false;
     }
@@ -43,6 +45,7 @@ watch(
   { immediate: true, deep: true }
 );
 
+// ⬇️ 當 localItems 被使用者修改 → emit 回父層
 watch(
   localItems,
   async (val) => {
@@ -57,12 +60,10 @@ watch(
   },
   { deep: true }
 );
-watch(() => props.items, (newVal) => {
-  //console.log('📦 itemList updated in <Items>: ', newVal);
-}, { immediate: true, deep: true });
 
-
+// ⬇️ 當單項更新時
+const onItemUpdate = (index) => {
+  // 手動觸發 localItems 更新（確保觸發 watch）
+  localItems.value = [...localItems.value];
+};
 </script>
-
-<style scoped>
-</style>

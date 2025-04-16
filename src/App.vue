@@ -138,7 +138,10 @@
           <component
             :is="getComponent(entry.type)"
             :index="entry.id"
-            :initialValue="resultsProxy[entry.id]"
+            :initialValue="{
+                ...(resultsProxy[entry.id] || {}),
+                isEnabled: (resultsProxy[entry.id]?.isEnabled ?? true)
+              }"
             :sepPrice="sepPrice"
             @update-result="updateResult"
           />
@@ -186,6 +189,9 @@
             :filteredResults="orderedFilteredResults"
             :filteredItems="filteredItems"
             :totalSubtotal="totalSubtotal"
+            :columnWidths="localColumnWidths"
+            @update:columnWidths="val => localColumnWidths = val"
+            
           />
           <WMSTable v-if="isSep"
             :sepPrice="sepPrice"
@@ -225,6 +231,8 @@ import { ref, computed, nextTick, onMounted, watch } from 'vue';
 
 
 
+const columnWidths = ref([100, 120, 120, 100, 160, 100, 80, 80, 80, 60, 80, 100, 200, 200]);
+const localColumnWidths = ref([100, 120, 120, 100, 160, 100, 80, 80, 80, 60, 80, 100, 200, 200]); // 用來儲存每欄的寬度
 
 
 const generateQuotation1 = () => {
@@ -349,7 +357,7 @@ export default {
         case '假腳或門檻': doorCardList.value.push(id); break;
         case '高背': wallCardList.value.push(id); break;
       }
-      cardOrderList.value.push({ id, type });
+      cardOrderList.value.push({ id, type,isEnabled:true});
     };
 
     const removeCard = (id, type) => {
@@ -383,6 +391,35 @@ export default {
       }[type];
     };
 
+    const restoreCardListsFromOrderList = (orderList) => {
+  // 清空所有清單
+  oneCardList.value = []
+  lCardList.value = []
+  mCardList.value = []
+  islandCardList.value = []
+  legCardList.value = []
+  wrapCardList.value = []
+  doorCardList.value = []
+  wallCardList.value = []
+
+  orderList.forEach(({ id, type }) => {
+    const num = parseInt(id.split('-')[1]);
+    if (!isNaN(num) && num >= typeCounters.value[type]) {
+      typeCounters.value[type] = num + 1;
+    }
+
+    switch (type) {
+      case '一字型': oneCardList.value.push(id); break;
+      case 'L': lCardList.value.push(id); break;
+      case 'M': mCardList.value.push(id); break;
+      case '中島': islandCardList.value.push(id); break;
+      case '側落腳': legCardList.value.push(id); break;
+      case '倒包': wrapCardList.value.push(id); break;
+      case '假腳或門檻': doorCardList.value.push(id); break;
+      case '高背': wallCardList.value.push(id); break;
+    }
+  });
+};
 
   const applyUnifiedPrice = () => {
   const price = parseInt(unifiedPrice.value);
@@ -549,18 +586,8 @@ const fetchData = async () => {
     fetchFiles();
 
     const updateResult = (result) => {
-  if (result.isEnabled) {
-    // 只有當 result 變更時才更新
-    if (
-      !results.value[result.index] ||
-      JSON.stringify(results.value[result.index]) !== JSON.stringify(result)
-    ) {
       results.value[result.index] = { ...result };
-    }
-  } else {
-    delete results.value[result.index];
-  }
-};
+     };
 
 
 
@@ -606,7 +633,7 @@ const fetchData = async () => {
     message.value = '請輸入檔案名稱';
     return;
   }
-
+  
   const filename = newFilename.value.endsWith('.json')
     ? newFilename.value
     : `${newFilename.value}.json`;
@@ -623,6 +650,9 @@ const fetchData = async () => {
     cuskeyword: cuskeyword.value,
     selectedCustomer: selectedCustomer.value,
     isSep: isSep.value,
+    columnWidths: columnWidths.value,
+    localColumnWidths: localColumnWidths.value,
+
   };
 
   try {
@@ -652,72 +682,63 @@ const fillDetails = () => {
 };
 
 
-    // Load a file and restore the state
     const loadFile = async () => {
   if (!selectedFile.value) return;
   try {
-      const response = await axios.get(`${API_BASE_URL}?action=load`, {
-        params: { filename: selectedFile.value },
-      });
+    const response = await axios.get(`${API_BASE_URL}?action=load`, {
+      params: { filename: selectedFile.value },
+    });
 
     const data = response.data.content;
-     if (data.itemList && Array.isArray(data.itemList)) {
-       // 用新陣列賦值，強迫 Vue tracking
+
+    // 還原欄寬設定
+    if (data.localColumnWidths) localColumnWidths.value = data.localColumnWidths;
+    if (Array.isArray(data.columnWidths)) columnWidths.value = data.columnWidths;
+
+    // 還原附加項目
+    if (Array.isArray(data.itemList)) {
       itemList.value = data.itemList.map(item => ({ ...item }));
-      //  console.log('✅ itemList restored:', itemList.value);
-     } 
-     
-    // console.log(data.itemList)
-    if (data.results) {
-      results.value = { ...data.results }; // ✅ 重新賦值，清空舊資料
-      customer.value = data.customer || '';
-      tel.value = data.tel || '';
-      fax.value = data.fax || '';
-      contacter.value = data.contacter || '';
-      add.value = data.add || '';
-      cuskeyword.value = data.cuskeyword || '';
-      selectedCustomer.value = data.selectedCustomer || '';
-      isSep.value = data.isSep || false;
-          // ⬇️ 還原所有卡片顯示狀態
-      if (data.cardOrderList) {
-          cardOrderList.value = data.cardOrderList;
-          data.cardOrderList.forEach(({ id, type }) => {
-            const num = parseInt(id.split('-')[1]);
-            if (!isNaN(num) && num >= typeCounters.value[type]) {
-              typeCounters.value[type] = num + 1;
-            }
-           });
-       }
-       if (!data.cardOrderList && data.results) {
-       cardOrderList.value = Object.keys(data.results)
-        .map((id) => {
-         const type = detectTypeFromId(id); // 用 id 推出 type
-        return { id, type };
-       });
-}
-      // restoreOneCardList();
-      // restoreLCardList();
-      // restoreMCardList();
-      // restoreIslandCardList();
-      // restoreLegCardList();
-      // restoreWrapCardList();
-      // restoreDoorCardList();
-      // restoreWallCardList();
-     
-     
     }
 
-    
+    // 還原結果
+    if (data.results) {
+      results.value = { ...data.results };
+    }
 
+    // 還原客戶資料
+    customer.value = data.customer || '';
+    tel.value = data.tel || '';
+    fax.value = data.fax || '';
+    contacter.value = data.contacter || '';
+    add.value = data.add || '';
+    cuskeyword.value = data.cuskeyword || '';
+    selectedCustomer.value = data.selectedCustomer || '';
+    isSep.value = data.isSep || false;
+
+    // 還原卡片順序 + 顯示狀態
+    if (Array.isArray(data.cardOrderList)) {
+      // 補上預設 isEnabled: true
+      cardOrderList.value = data.cardOrderList.map(c => ({
+        ...c,
+        isEnabled: c.isEnabled !== false
+      }));
+      restoreCardListsFromOrderList(cardOrderList.value);
+    } else if (data.results) {
+      // 舊版資料無 cardOrderList，從 results 推測重建
+      cardOrderList.value = Object.keys(data.results).map(id => {
+        const type = detectTypeFromId(id);
+        return { id, type, isEnabled: true };
+      });
+      restoreCardListsFromOrderList(cardOrderList.value);
+    }
 
     message.value = `檔案 ${selectedFile.value} 已載入`;
     selectedFile.value = '';
   } catch (error) {
     message.value = '載入失敗: ' + error.message;
   }
- 
-
 };
+
 
 
 
@@ -786,8 +807,9 @@ const fillDetails = () => {
       addCard,
       removeCard,
       getComponent,
-      orderedFilteredResults
-     
+      orderedFilteredResults,
+      localColumnWidths,
+      
       
 
     };
