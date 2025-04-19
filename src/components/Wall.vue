@@ -1,11 +1,7 @@
 <template>
   <div class="bg-white p-4 rounded-lg shadow-md w-full min-w-0 max-w-[700px]">
     <div class="flex flex-wrap gap-2 mb-2 items-center text-sm">
-      <input
-        type="checkbox"
-        v-model="isEnabled"
-        class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded"
-      />
+      
       <h2 class="font-semibold text-gray-700">高背</h2>
 
       <label class="whitespace-nowrap">顏色</label>

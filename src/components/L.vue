@@ -2,20 +2,20 @@
   <div class="bg-white p-4 rounded-lg shadow-md w-full min-w-0 max-w-[500px]">
     <!-- 頂部選項列 -->
     <div class="flex flex-wrap gap-2 mb-2 items-center text-sm">
-      <input type="checkbox" v-model="isEnabled" class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded" />
+      <!-- <input type="checkbox" v-model="isEnabled" class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded" /> -->
       <h2 class="font-semibold text-gray-700">L型</h2>
 
       <label class="whitespace-nowrap">顏色</label>
-      <input v-model="form.color" type="text" class="w-[64px] p-1 border rounded-md focus:ring-1 focus:ring-green-500" :disabled="!isEnabled" />
+      <input v-model="form.color" type="text" class="w-[64px] p-1 border rounded-md focus:ring-1 focus:ring-green-500"  />
 
       <label class="whitespace-nowrap">摘要</label>
-      <input v-model="form.sumary" type="text" class="w-[80px] p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model="form.sumary" type="text" class="w-[80px] p-1 border rounded-md"  />
 
       <label class="whitespace-nowrap">單開</label>
-      <input v-model="form.oneOpen" type="checkbox" class="h-4 w-4" :disabled="!isEnabled" />
+      <input v-model="form.oneOpen" type="checkbox" class="h-4 w-4"  />
 
       <label class="whitespace-nowrap">雙開</label>
-      <input v-model="form.duOpen" type="checkbox" class="h-4 w-4" :disabled="!isEnabled" />
+      <input v-model="form.duOpen" type="checkbox" class="h-4 w-4"  />
     </div>
 
     <!-- 表格改為 Grid -->
@@ -29,40 +29,40 @@
     </div>
     <div class="grid grid-cols-6 gap-2 text-sm mb-2">
       <span class="text-gray-600">檯面1</span>
-      <input v-model.number="form.length1" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-      <input v-model.number="form.depth1" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-      <input v-model.number="form.frontEdge1" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-      <input v-model.number="form.backWall1" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-      <input v-model.number="form.wrapBack1" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.length1" type="number" class="p-1 border rounded-md"  />
+      <input v-model.number="form.depth1" type="number" class="p-1 border rounded-md"  />
+      <input v-model.number="form.frontEdge1" type="number" class="p-1 border rounded-md"  />
+      <input v-model.number="form.backWall1" type="number" class="p-1 border rounded-md"  />
+      <input v-model.number="form.wrapBack1" type="number" class="p-1 border rounded-md"  />
 
       <span class="text-gray-600">檯面2</span>
-      <input v-model.number="form.length2" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-      <input v-model.number="form.depth2" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-      <input v-model.number="form.frontEdge2" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-      <input v-model.number="form.backWall2" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-      <input v-model.number="form.wrapBack2" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.length2" type="number" class="p-1 border rounded-md"  />
+      <input v-model.number="form.depth2" type="number" class="p-1 border rounded-md"  />
+      <input v-model.number="form.frontEdge2" type="number" class="p-1 border rounded-md"  />
+      <input v-model.number="form.backWall2" type="number" class="p-1 border rounded-md"  />
+      <input v-model.number="form.wrapBack2" type="number" class="p-1 border rounded-md"  />
     </div>
 
     <!-- 下方選項列 -->
     <div class="flex flex-wrap gap-4 mt-4 text-sm">
       <div class="flex items-center space-x-1">
         <label class="whitespace-nowrap">板材極限 (cm)</label>
-        <input v-model.number="form.limit" type="number" class="w-[60px] p-1 border rounded-md" :disabled="!isEnabled" min="60" />
+        <input v-model.number="form.limit" type="number" class="w-[60px] p-1 border rounded-md"  min="60" />
       </div>
       <div class="flex items-center space-x-1">
         <label class="whitespace-nowrap">單價</label>
-        <input v-model.number="form.unitPrice" type="number" class="w-[72px] p-1 border rounded-md" :disabled="!isEnabled" />
+        <input v-model.number="form.unitPrice" type="number" class="w-[72px] p-1 border rounded-md"  />
       </div>
       <div class="flex items-center space-x-1">
         <label class="whitespace-nowrap">備註</label>
-        <input v-model="form.note" type="text" class="w-[100px] p-1 border rounded-md" :disabled="!isEnabled" />
+        <input v-model="form.note" type="text" class="w-[100px] p-1 border rounded-md"  />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, watch } from 'vue';
+import { ref, watch ,nextTick} from 'vue';
 
 export default {
   name: 'L',
@@ -119,6 +119,10 @@ watch(
       isEnabled.value = val.isEnabled ?? false;
 
       isLoading.value = false; // ✅ 載入完成
+      nextTick(() => {
+      isLoading.value = false;
+      calculate(); // ✅ 在 DOM 完整載入後執行計算，避免批次更新遺漏
+    });
     }
   },
   { immediate: true, deep: true }

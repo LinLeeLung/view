@@ -231,3 +231,33 @@ h1, h3 {
  
 }
 
+th .resize-handle {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+  background-color: transparent;
+}
+@media print {
+  table, thead, tbody, th, td, tr {
+    border: 1px solid black !important;
+    border-collapse: collapse !important;
+  }
+
+  th, td {
+    padding: 4px !important;
+  }
+
+  th {
+    background-color: #e5f4f9 !important; /* 若你希望列印時也保留背景色 */
+    color: black !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important; /* 保留背景色 */
+    print-color-adjust: exact !important;
+  }
+}

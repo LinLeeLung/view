@@ -2,7 +2,7 @@
   <div class="bg-white p-1 rounded-lg shadow-md w-full min-w-0">
     <!-- 頂部選項列 -->
     <div class="flex flex-wrap gap-2 mb-2 items-center text-sm">
-      <input type="checkbox" v-model="isEnabled" class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded" />
+      <!-- <input type="checkbox" v-model="isEnabled" class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded" /> -->
       <h2 class="font-semibold text-gray-700">一字型</h2>
 
       <label class="whitespace-nowrap">顏色</label>

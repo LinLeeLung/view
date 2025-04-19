@@ -2,20 +2,20 @@
   <div class="bg-white p-4 rounded-lg shadow-md w-full min-w-0 max-w-[500px]">
     <!-- 頂部選項列 -->
     <div class="flex flex-wrap gap-2 mb-2 items-center text-sm">
-      <input type="checkbox" v-model="isEnabled" class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded" />
+      <!-- <input type="checkbox" v-model="isEnabled" class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded" /> -->
       <h2 class="font-semibold text-gray-700">M型</h2>
 
       <label class="whitespace-nowrap">顏色</label>
-      <input v-model="form.color" type="text" class="w-[64px] p-1 border rounded-md focus:ring-1 focus:ring-green-500" :disabled="!isEnabled" />
+      <input v-model="form.color" type="text" class="w-[64px] p-1 border rounded-md focus:ring-1 focus:ring-green-500"  />
 
       <label class="whitespace-nowrap">摘要</label>
-      <input v-model="form.sumary" type="text" class="w-[80px] p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model="form.sumary" type="text" class="w-[80px] p-1 border rounded-md"  />
 
       <label class="whitespace-nowrap">1開</label>
-      <input v-model="form.oneOpen" type="checkbox" class="h-4 w-4" :disabled="!isEnabled" />
+      <input v-model="form.oneOpen" type="checkbox" class="h-4 w-4"  />
 
       <label class="whitespace-nowrap">3開</label>
-      <input v-model="form.duOpen" type="checkbox" class="h-4 w-4" :disabled="!isEnabled" />
+      <input v-model="form.duOpen" type="checkbox" class="h-4 w-4"  />
     </div>
 
     <!-- Grid 表格 -->
@@ -31,11 +31,11 @@
     <div class="grid grid-cols-6 gap-2 text-sm mb-2">
       <template v-for="label in ['1', '2', '3']" :key="label">
         <span class="text-gray-600">檯面{{ label }}</span>
-        <input v-model.number="form[`length${label}`]" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-        <input v-model.number="form[`depth${label}`]" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-        <input v-model.number="form[`frontEdge${label}`]" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-        <input v-model.number="form[`backWall${label}`]" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-        <input v-model.number="form[`wrapBack${label}`]" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+        <input v-model.number="form[`length${label}`]" type="number" class="p-1 border rounded-md"  />
+        <input v-model.number="form[`depth${label}`]" type="number" class="p-1 border rounded-md"  />
+        <input v-model.number="form[`frontEdge${label}`]" type="number" class="p-1 border rounded-md"  />
+        <input v-model.number="form[`backWall${label}`]" type="number" class="p-1 border rounded-md"  />
+        <input v-model.number="form[`wrapBack${label}`]" type="number" class="p-1 border rounded-md"  />
       </template>
     </div>
 
@@ -43,15 +43,15 @@
     <div class="flex flex-wrap gap-4 mt-4 text-sm">
       <div class="flex items-center space-x-1">
         <label class="whitespace-nowrap">板材極限 (cm)</label>
-        <input v-model.number="form.limit" type="number" class="w-[60px] p-1 border rounded-md" :disabled="!isEnabled" min="60" />
+        <input v-model.number="form.limit" type="number" class="w-[60px] p-1 border rounded-md"  min="60" />
       </div>
       <div class="flex items-center space-x-1">
         <label class="whitespace-nowrap">單價</label>
-        <input v-model.number="form.unitPrice" type="number" class="w-[72px] p-1 border rounded-md" :disabled="!isEnabled" />
+        <input v-model.number="form.unitPrice" type="number" class="w-[72px] p-1 border rounded-md"  />
       </div>
       <div class="flex items-center space-x-1">
         <label class="whitespace-nowrap">備註</label>
-        <input v-model="form.note" type="text" class="w-[100px] p-1 border rounded-md" :disabled="!isEnabled" />
+        <input v-model="form.note" type="text" class="w-[100px] p-1 border rounded-md"  />
       </div>
     </div>
   </div>
@@ -59,7 +59,7 @@
 
   
 <script>
-import { ref, watch } from 'vue';
+import { ref, watch ,nextTick} from 'vue';
 
 export default {
   name: 'M',
@@ -88,29 +88,23 @@ export default {
       length3: 100, depth3: 60, frontEdge3: 4, backWall3: 4, wrapBack3: 0,
     });
 
-    const isEnabled = ref(false);
+    const isEnabled = ref(true);
 
-    watch(
-  () => props.initialValue,
-  (val) => {
-    if (val) {
-      isLoading.value = true; // ✅ 防止載入時觸發計算
+    watch(() => props.initialValue, (val) => {
+  if (val) {
+    isLoading.value = true;
 
-      // ✅ 如果有 forceUpdate，強制更新 unitPrice
-      if (val.forceUpdate) {
-        console.log(`🔄 M.vue - 更新 unitPrice: ${val.unitPrice}`);
-        form.value.unitPrice = val.unitPrice;
-      }
+    if (val.forceUpdate) form.value.unitPrice = val.unitPrice;
+    form.value = { ...form.value, ...val };
+    isEnabled.value = val.isEnabled ?? true;
 
-      // ✅ 正常更新表單數據
-      form.value = { ...form.value, ...val };
-      isEnabled.value = val.isEnabled ?? false;
+    nextTick(() => {
+      isLoading.value = false;
+      calculate(); // ✅ 在 DOM 完整載入後執行計算，避免批次更新遺漏
+    });
+  }
+}, { immediate: true, deep: true });
 
-      isLoading.value = false; // ✅ 載入完成
-    }
-  },
-  { immediate: true, deep: true }
-);
 
 
 

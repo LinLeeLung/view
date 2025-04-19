@@ -225,7 +225,8 @@
       <!-- 附加項目區塊 -->
       <h3 class="text-lg font-semibold text-gray-700 mb-2">附加項目</h3>
       <div class="mb-6">
-        <Items v-model:items="itemList" />
+        <Items :items="itemList" @update:items="onItemsUpdate" />
+
       </div> 
       <button @click="generateQuotation" class="bg-purple-500 text-white px-4 py-2 rounded">
        產出報價單
@@ -286,6 +287,11 @@ import styleText from './assets/style.css?raw';
 
 // import WMSTable from './components/WMSTable.vue';
 // const cssUrl = new URL("@/public/style.css", import.meta.url).href;
+const onItemsUpdate = (val) => {
+  if (JSON.stringify(val) !== JSON.stringify(itemList.value)) {
+    itemList.value = val;
+  }
+};
 
 
 const generateQuotation = () => {
@@ -689,7 +695,8 @@ const fillDetails = () => {
       fillDetails,
       unifiedColor,
       isSep,
-      sepPrice
+      sepPrice,
+      onItemsUpdate
     };
   },
 };

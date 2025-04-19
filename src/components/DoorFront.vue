@@ -1,13 +1,9 @@
 <template>
   <div class="bg-white p-4 rounded-lg shadow-md w-full min-w-0 max-w-[700px]">
     <div class="flex flex-wrap gap-2 mb-2 items-center text-sm">
-      <input
-        type="checkbox"
-        v-model="isEnabled"
-        class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded"
-      />
+      
       <h2 class="font-semibold text-gray-700">門檻或假腳</h2>
-
+        
       <label class="whitespace-nowrap">顏色</label>
       <input
         v-model="form.color"
@@ -55,7 +51,7 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue';
+import { ref, watch ,nextTick} from 'vue';
 
 export default {
   name: 'DoorFront',
@@ -78,33 +74,90 @@ export default {
       note: '',
       
     });
+    
+    const isEnabled = ref(true);
+    const isLoading = ref(false);
+    const calculate = () => {
+       if (isLoading.value) {
+        return;
+       }
 
-    const isEnabled = ref(false);
-    let isLoading = false;
-
-    watch(
-  () => props.initialValue,
-  (val) => {
-    if (val) {
-      isLoading = true;
-      Object.keys(form.value).forEach((key) => {
-        if (val.hasOwnProperty(key)) {
-          form.value[key] = val[key];
-        }
+     // ✅ 如果未勾選，僅通知父層
+     if (!isEnabled.value) {
+      emit('update-result', {
+      index: props.index,
+      isEnabled: true
       });
-      // ✅ 正確設置 isEnabled
-      isEnabled.value = val.isEnabled === undefined ? false : val.isEnabled;
+      return;
+     }
 
-      isLoading = false;
+        const f = form.value;
+        f.unitPrice = Math.round(f.baseWage+ f.stonePrice*f.depth/60)
 
-      // ✅ 如果已啟用，則強制執行一次計算
-      if (isEnabled.value) {
-        calculate();
-      }
+        const roundedValue = Math.round(f.length);
+        const subtotal = roundedValue * f.unitPrice;
+        const area = Math.round(f.length * f.depth / 900);
+        const subtotal2 = area * props.sepPrice;
+        
+        const calcSteps = `${f.unitPrice} * ${f.length} = ${subtotal}`;
+        const calcSteps2 = `${f.unitPrice} * ${area} = ${subtotal2}`;
+        
+        emit('update-result', {
+          index: props.index,
+          isEnabled: true,
+          ...f,
+          roundedCentimeters: roundedValue,
+          subtotal: Math.round(subtotal),
+          calculationSteps: calcSteps.trim(),
+          calculationSteps2: calcSteps2.trim(),
+          area:area,
+          subtotal2:Math.round(subtotal2),  
+          frontEdgeLength: f.length,
+
+        });
+   };
+   const setInitialValue = (val) => {
+  if (Object.prototype.toString.call(val) !== '[object Object]') {
+    console.warn('[DoorFront] initialValue 傳入不合法：', val);
+    return;
+  }
+
+  isLoading.value = true;
+
+  const newForm = { ...form.value, ...val };
+  const newIsEnabled = val.isEnabled ?? true;
+
+  const same = JSON.stringify({ ...form.value, isEnabled: isEnabled.value }) ===
+               JSON.stringify({ ...newForm, isEnabled: newIsEnabled });
+
+  if (!same) {
+    if (val.forceUpdate) {
+      form.value.unitPrice = val.unitPrice;
     }
-  },
-  { immediate: true, deep: true }
-);
+    form.value = newForm;
+    isEnabled.value = newIsEnabled;
+  }
+
+  isLoading.value = false;
+};
+
+
+
+watch(() => props.initialValue, (val) => {
+  if (!val || typeof val !== 'object') return;
+
+  isLoading.value = true;
+
+  if (val.forceUpdate) form.value.unitPrice = val.unitPrice;
+  form.value = { ...form.value, ...val };
+  isEnabled.value = val.isEnabled ?? true;
+
+  nextTick(() => {
+    isLoading.value = false;
+    calculate();
+  });
+}, { immediate: true, deep: true });
+
 
 
 
@@ -112,7 +165,7 @@ export default {
 
 // ✅ 當 isEnabled 變更時，觸發計算或 emit
 watch(isEnabled, (val) => {
-  if (!isLoading) {
+  if (!isLoading.value) {
     calculate(); // ✅ 勾選變更時觸發計算
   } else if (!val) {
     // ✅ 如果取消勾選，回傳 isEnabled: false
@@ -128,7 +181,7 @@ watch(isEnabled, (val) => {
     watch(
       form,
       () => {
-        if (isEnabled.value && !isLoading) {
+        if (isEnabled.value && !isLoading.value) {
           calculate();
         }
       },
@@ -137,45 +190,7 @@ watch(isEnabled, (val) => {
 
     
 
-   const calculate = () => {
-     if (isLoading) {
-        return;
-     }
-
-  // ✅ 如果未勾選，僅通知父層
-  if (!isEnabled.value) {
-    emit('update-result', {
-      index: props.index,
-      isEnabled: false
-    });
-    return;
-  }
-
-  const f = form.value;
-  f.unitPrice = Math.round(f.baseWage+ f.stonePrice*f.depth/60)
-
-  const roundedValue = Math.round(f.length);
-  const subtotal = roundedValue * f.unitPrice;
-  const area = Math.round(f.length * f.depth / 900);
-  const subtotal2 = area * props.sepPrice;
-  
-  const calcSteps = `${f.unitPrice} * ${f.length} = ${subtotal}`;
-  const calcSteps2 = `${f.unitPrice} * ${area} = ${subtotal2}`;
-  
-  emit('update-result', {
-    index: props.index,
-    isEnabled: true,
-    ...f,
-    roundedCentimeters: roundedValue,
-    subtotal: Math.round(subtotal),
-    calculationSteps: calcSteps.trim(),
-    calculationSteps2: calcSteps2.trim(),
-    area:area,
-    subtotal2:Math.round(subtotal2),  
-    frontEdgeLength: f.length,
-
-  });
-};
+   
 
     return {
       form,

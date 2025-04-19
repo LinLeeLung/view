@@ -1,26 +1,40 @@
 export function applySeparationItems({ isSep, itemList, totalFrontEdgeLength }) {
-    if (!Array.isArray(itemList.value)) return;
-  
-    itemList.value.forEach(item => {
-      const isStar = typeof item.name === 'string' && item.name.includes('★');
-  
-      if (isSep.value && isStar) {
-        item.checked = true;
-  
-        // ✅ 特別處理前緣長度
-        if (item.id === 'frontEdge45') {
-          item.amount = parseFloat(totalFrontEdgeLength.value) || 0;
+  if (!Array.isArray(itemList.value)) return;
+
+  let changed = false;
+
+  const updatedList = itemList.value.map(item => {
+    const isStar = typeof item.name === 'string' && item.name.includes('★');
+    const newItem = { ...item };
+
+    if (isSep.value && isStar) {
+      if (!newItem.checked || newItem.amount === 0) changed = true;
+      newItem.checked = true;
+
+      if (newItem.id === 'frontEdge45') {
+        const newAmount = parseFloat(totalFrontEdgeLength.value) || 0;
+        if (newItem.amount !== newAmount) {
+          newItem.amount = newAmount;
+          changed = true;
         }
-  
-        if (!item.amount) {
-          item.amount = 1;
-        }
-  
-      } else if (!isSep.value && isStar) {
-        // ❌ 取消勾選，還原狀態
-        item.checked = false;
-        item.amount = 0;
+      } else if (!newItem.amount) {
+        newItem.amount = 1;
+        changed = true;
       }
-    });
+
+    } else if (!isSep.value && isStar) {
+      if (newItem.checked || newItem.amount !== 0) changed = true;
+      newItem.checked = false;
+      newItem.amount = 0;
+    }
+
+    return newItem;
+  });
+
+  if (changed) {
+    // console.log('[applySeparationItems] itemList changed，進行更新');
+    itemList.value = updatedList;
+  } else {
+    // console.log('[applySeparationItems] 無變動，略過更新');
   }
-  
+}

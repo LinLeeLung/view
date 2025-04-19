@@ -1,11 +1,7 @@
 <template>
     <div class="bg-white p-4 rounded-lg shadow-md w-full min-w-0 max-w-[700px]">
       <div class="flex flex-wrap gap-2 mb-2 items-center text-sm">
-        <input
-          type="checkbox"
-          v-model="isEnabled"
-          class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded"
-        />
+
         <h2 class="font-semibold text-gray-700">側落腳</h2>
 
         <label class="whitespace-nowrap">顏色</label>
@@ -61,7 +57,7 @@
 </template>
   
   <script>
-import { ref, watch } from 'vue';
+import { ref, watch ,nextTick} from 'vue';
 
 export default {
   name: 'Leg',
@@ -95,7 +91,7 @@ export default {
       note: ''
     });
 
-    const isEnabled = ref(false);
+    const isEnabled = ref(true);
 
     // ✅ 初始資料載入：只套用值，不觸發 emit
     watch(
@@ -197,6 +193,25 @@ export default {
 
     watch(form, calculate, { deep: true });
     watch(isEnabled, calculate);
+    watch(
+  () => props.initialValue,
+  (val) => {
+    if (val) {
+      isLoading.value = true;
+      if (val.forceUpdate) {
+        form.value.unitPrice = val.unitPrice;
+      }
+      form.value = { ...form.value, ...val };
+      isEnabled.value = val.isEnabled ?? true;
+
+      nextTick(() => {
+        isLoading.value = false;
+        calculate(); // 🟢 確保 DOM 完整後才觸發
+      });
+    }
+  },
+  { immediate: true, deep: true }
+);
 
     return {
       form,

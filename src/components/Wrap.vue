@@ -1,11 +1,7 @@
 <template>
     <div class="bg-white p-4 rounded-lg shadow-md w-full min-w-0 max-w-[700px]">
       <div class="flex flex-wrap gap-2 mb-2 items-center text-sm">
-        <input
-          type="checkbox"
-          v-model="isEnabled"
-          class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded"
-        />
+        
         <h2 class="font-semibold text-gray-700">倒包</h2>
 
         <label class="whitespace-nowrap">顏色</label>
@@ -49,7 +45,7 @@
 </template>
   
   <script>
-import { ref, watch } from 'vue';
+import { ref, watch,nextTick } from 'vue';
 
 export default {
   name: 'Wrap',
@@ -124,10 +120,10 @@ export default {
         });
         isEnabled.value = val.isEnabled ?? false;
         isLoading = false;
-
-        if (isEnabled.value) {
-          calculate();
-        }
+        nextTick(() => {
+         
+          calculate(); // 🟢 確保 DOM 完整後才觸發
+      });
       }
     }, { immediate: true, deep: true });
 

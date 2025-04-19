@@ -101,9 +101,13 @@
         <div class="bg-blue-50 p-1 rounded-lg shadow-md">
           客戶關鍵字<input type =text v-model="cuskeyword" />
           <label> 選擇客戶：</label>  <select v-if="filterCustomers.length > 0" v-model="selectedCustomer" @change="fillDetails">
-            <option v-for="customer in filterCustomers" :key="customer.name" :value="customer">
-                {{ customer.name }}
-            </option>
+           <option
+            v-for="(customer, index) in filterCustomers"
+            :key="customer.name + '-' + index"
+            :value="customer"
+            >
+            {{ customer.name }}
+          </option>
         </select>
           客戶名稱<input type = text v-model="customer" placeholder ="請輸入客戶名稱"/> 
           電話<input type = text v-model="tel" placeholder ="請輸入電話"/>
@@ -136,15 +140,17 @@
         <div class="relative border border-gray-300 rounded-lg p-2">
           <div class="font-semibold text-sm text-gray-600 mb-1">{{ entry.id }}</div>
           <component
-            :is="getComponent(entry.type)"
-            :index="entry.id"
-            :initialValue="{
-                ...(resultsProxy[entry.id] || {}),
-                isEnabled: (resultsProxy[entry.id]?.isEnabled ?? true)
+              v-if="getComponent(entry.type)"
+              :is="getComponent(entry.type)"
+              :index="entry.id"
+              :initialValue="{
+                 ...(isObject(resultsProxy[entry.id]) ? resultsProxy[entry.id] : {}),
+                 isEnabled: true
               }"
-            :sepPrice="sepPrice"
-            @update-result="updateResult"
-          />
+              :sepPrice="sepPrice"
+              @update-result="updateResult"
+            />
+
           <button
             @click="removeCard(entry.id, entry.type)"
             class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600"
@@ -160,7 +166,7 @@
 
       <h3 class="text-lg font-semibold text-gray-700 mb-2">附加項目</h3>
       <div >
-        <Items v-model:items="itemList" />
+         <Items v-model:items="itemList" />
       </div>
 
 
@@ -206,7 +212,7 @@
 
 <script >
 import { useDynamicCardList } from './composables/useDynamicCardList.js'
-
+import { isObject } from './utlis/validate.js';
 import One from './components/One.vue';
 import L from './components/L.vue';
 import M from './components/M.vue';
@@ -316,7 +322,7 @@ export default {
   name: 'App',
   components: { One, L, M, Iland, Items ,Leg, QuotationHeader, QuotationTable , WMSTable, Wrap, DoorFront, Wall },
   setup() {
-
+  
   const orderedFilteredResults = computed(() => {
   return Object.fromEntries(
     cardOrderList.value
@@ -346,19 +352,30 @@ export default {
     const doorCardList = ref([]);
     const wallCardList = ref([]);
    const addCard = (type) => {
-      const id = `${type}-${typeCounters.value[type]++}`;
-      switch (type) {
-        case '一字型': oneCardList.value.push(id); break;
-        case 'L': lCardList.value.push(id); break;
-        case 'M': mCardList.value.push(id); break;
-        case '中島': islandCardList.value.push(id); break;
-        case '側落腳': legCardList.value.push(id); break;
-        case '倒包': wrapCardList.value.push(id); break;
-        case '假腳或門檻': doorCardList.value.push(id); break;
-        case '高背': wallCardList.value.push(id); break;
+      const knownTypes = ['一字型', 'L', 'M', '中島', '側落腳', '倒包', '假腳或門檻', '高背'];
+      if (!knownTypes.includes(type)) {
+        alert(`❌ 不支援的元件類型：${type}`);
+        return;
       }
-      cardOrderList.value.push({ id, type,isEnabled:true});
-    };
+
+      const id = `${type}-${typeCounters.value[type]++}`;
+
+      // 對應各元件清單
+      const listMap = {
+        '一字型': oneCardList,
+        'L': lCardList,
+        'M': mCardList,
+        '中島': islandCardList,
+        '側落腳': legCardList,
+        '倒包': wrapCardList,
+        '假腳或門檻': doorCardList,
+        '高背': wallCardList,
+      };
+
+  listMap[type].value.push(id);
+  cardOrderList.value.push({ id, type, isEnabled: true });
+};
+
 
     const removeCard = (id, type) => {
       const listMap = {
@@ -378,18 +395,28 @@ export default {
       delete results.value[id];
     };
 
-    const getComponent = (type) => {
-      return {
-        '一字型': One,
-        'L': L,
-        'M': M,
-        '中島': Iland,
-        '側落腳': Leg,
-        '倒包': Wrap,
-        '假腳或門檻': DoorFront,
-        '高背': Wall,
-      }[type];
+  const getComponent = (type) => {
+  const map = {
+    '一字型': One,
+    'L': L,
+    'M': M,
+    '中島': Iland,
+    '側落腳': Leg,
+    '倒包': Wrap,
+    '假腳或門檻': DoorFront,
+    '高背': Wall,
+  };
+  if (!map[type]) {
+    console.log(`⚠️ 無法找到元件類型: "${type}"，將顯示佔位元件。`);
+    return {
+     
     };
+  }
+  return map[type];
+};
+
+
+
 
     const restoreCardListsFromOrderList = (orderList) => {
   // 清空所有清單
@@ -499,9 +526,17 @@ const applyUnifiedColor = () => {
       }, 0);
       return total.toFixed(0);
     });
-    watch([isSep, totalFrontEdgeLength], () => {
-    applySeparationItems({ isSep, itemList, totalFrontEdgeLength });
-   });
+    let separationTimeout = null;
+watch(
+  [isSep, () => totalFrontEdgeLength.value],
+  () => {
+    clearTimeout(separationTimeout);
+    separationTimeout = setTimeout(() => {
+      applySeparationItems({ isSep, itemList, totalFrontEdgeLength });
+    }, 100);
+  },
+  { flush: 'post' }
+);
  
 // ⬇️ 引入自定義卡片管理 composable
 
@@ -586,8 +621,14 @@ const fetchData = async () => {
     fetchFiles();
 
     const updateResult = (result) => {
-      results.value[result.index] = { ...result };
-     };
+      // console.log('[updateResult]', result.index);
+    const current = results.value[result.index];
+     const isChanged = !current || JSON.stringify(current) !== JSON.stringify(result);
+     
+  if (isChanged) {
+    results.value[result.index] = { ...result };
+  }
+};
 
 
 
@@ -661,7 +702,7 @@ const fetchData = async () => {
       content
     });
 
-    message.value = `檔案 ${filename} 已儲存`;
+    message.value =` 檔案 ${filename} 已儲存`;
     newFilename.value = '';
     fetchFiles(); // 重新載入檔案列表
   } catch (error) {
@@ -684,60 +725,86 @@ const fillDetails = () => {
 
     const loadFile = async () => {
   if (!selectedFile.value) return;
+
   try {
     const response = await axios.get(`${API_BASE_URL}?action=load`, {
       params: { filename: selectedFile.value },
     });
 
     const data = response.data.content;
-
-    // 還原欄寬設定
-    if (data.localColumnWidths) localColumnWidths.value = data.localColumnWidths;
-    if (Array.isArray(data.columnWidths)) columnWidths.value = data.columnWidths;
-
-    // 還原附加項目
+    
+    // ⬇️ 還原 itemList（需比對）
     if (Array.isArray(data.itemList)) {
-      itemList.value = data.itemList.map(item => ({ ...item }));
+      const newItemList = data.itemList.map(item => ({ ...item }));
+      if (JSON.stringify(newItemList) !== JSON.stringify(itemList.value)) {
+        itemList.value = newItemList;
+      }
     }
 
-    // 還原結果
+    // ⬇️ 還原 results
     if (data.results) {
-      results.value = { ...data.results };
+      const newResults = { ...data.results };
+      if (JSON.stringify(newResults) !== JSON.stringify(results.value)) {
+        results.value = newResults;
+      }
     }
 
-    // 還原客戶資料
-    customer.value = data.customer || '';
-    tel.value = data.tel || '';
-    fax.value = data.fax || '';
-    contacter.value = data.contacter || '';
-    add.value = data.add || '';
-    cuskeyword.value = data.cuskeyword || '';
-    selectedCustomer.value = data.selectedCustomer || '';
-    isSep.value = data.isSep || false;
+    // ⬇️ 還原 isSep
+    if (typeof data.isSep === 'boolean' && data.isSep !== isSep.value) {
+      isSep.value = data.isSep;
+    }
 
-    // 還原卡片順序 + 顯示狀態
+    // ⬇️ 還原卡片清單
     if (Array.isArray(data.cardOrderList)) {
-      // 補上預設 isEnabled: true
-      cardOrderList.value = data.cardOrderList.map(c => ({
-        ...c,
-        isEnabled: c.isEnabled !== false
-      }));
-      restoreCardListsFromOrderList(cardOrderList.value);
-    } else if (data.results) {
-      // 舊版資料無 cardOrderList，從 results 推測重建
-      cardOrderList.value = Object.keys(data.results).map(id => {
-        const type = detectTypeFromId(id);
-        return { id, type, isEnabled: true };
-      });
-      restoreCardListsFromOrderList(cardOrderList.value);
+  // 🟢 有 cardOrderList，就直接使用
+  const newOrder = data.cardOrderList.map(c => ({
+    ...c,
+    isEnabled: c.isEnabled !== false
+  }));
+  if (JSON.stringify(newOrder) !== JSON.stringify(cardOrderList.value)) {
+    cardOrderList.value = newOrder;
+    restoreCardListsFromOrderList(cardOrderList.value);
+  }
+
+} else if (data.results && typeof data.results === 'object') {
+  // 🟡 舊版資料推測建立 cardOrderList
+  const fallbackList = Object.keys(data.results).map(id => {
+    return {
+      id,
+      type: detectTypeFromId(id),
+      isEnabled: true
+    };
+  });
+
+  cardOrderList.value = fallbackList;
+  restoreCardListsFromOrderList(fallbackList);
+}
+
+    // ⬇️ 還原欄寬
+    if (Array.isArray(data.columnWidths)) {
+      columnWidths.value = data.columnWidths;
     }
+    if (Array.isArray(data.localColumnWidths)) {
+      localColumnWidths.value = data.localColumnWidths;
+    }
+
+    // ⬇️ 還原客戶欄位（逐一比對）
+    if (data.customer !== customer.value) customer.value = data.customer || '';
+    if (data.tel !== tel.value) tel.value = data.tel || '';
+    if (data.fax !== fax.value) fax.value = data.fax || '';
+    if (data.contacter !== contacter.value) contacter.value = data.contacter || '';
+    if (data.add !== add.value) add.value = data.add || '';
+    if (data.cuskeyword !== cuskeyword.value) cuskeyword.value = data.cuskeyword || '';
+    if (data.selectedCustomer !== selectedCustomer.value) selectedCustomer.value = data.selectedCustomer || '';
 
     message.value = `檔案 ${selectedFile.value} 已載入`;
     selectedFile.value = '';
+
   } catch (error) {
     message.value = '載入失敗: ' + error.message;
   }
 };
+
 
 
 
@@ -809,7 +876,7 @@ const fillDetails = () => {
       getComponent,
       orderedFilteredResults,
       localColumnWidths,
-      
+      isObject,
       
 
     };
