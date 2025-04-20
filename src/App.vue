@@ -682,6 +682,12 @@ const getComponent = (type) => {
 };
 
 const exportToExcel = () => {
+  console.log("excel...",isSep.value)
+  if (isSep.value){exportToExcel2()}
+  else{exportToExcel1()}
+}
+
+const exportToExcel1 = () => {
   const data = [];
 
   data.push([
@@ -747,6 +753,78 @@ const exportToExcel = () => {
   const worksheet = XLSX.utils.aoa_to_sheet(data);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, '報價單');
+
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  saveAs(blob, `報價單_${new Date().toISOString().slice(0, 10)}.xlsx`);
+};
+
+const exportToExcel2 = () => {
+  const data = [];
+
+  data.push([
+    '項目', '前沿', '背牆/後厚', '倒包', '摘要', '顏色',
+    '長', '深', '數量', '單位', '單價', '未稅價', '計算過程', '備註'
+  ]);
+
+  for (const [index, result] of Object.entries(orderedFilteredResults.value)) {
+    if (!result?.isEnabled) continue;
+    const detail = result.detail;
+
+    if (detail) {
+      const rows = [detail.side1, detail.side2, detail.side3].filter(Boolean);
+      rows.forEach((side, i) => {
+        data.push([
+          i === 0 ? index : '',
+          side.frontEdge || '',
+          side.backWall || '',
+          side.wrapBack || '',
+          i === 0 ? result.sumary : '',
+          i === 0 ? result.color : '',
+          side.length || '',
+          side.depth || '',
+          i === 0 ? result.area : '',
+          i === 0 ? '才' : '',
+          i === 0 ? sepPrice.value : '',
+          i === 0 ? result.subtotal2 : '',
+          i === 0 ? result.calculationSteps2 : '',
+          i === 0 ? result.note : ''
+        ]);
+      });
+    } else {
+      data.push([
+        index,
+        result.frontEdge || '',
+        result.backWall || result.backEdge || '',
+        result.wrapBack || '',
+        result.sumary || '',
+        result.color || '',
+        result.length || '',
+        result.depth || '',
+        result.area || '',
+        '才',
+        sepPrice.value || '',
+        result.subtotal2 || '',
+        result.calculationSteps2 || '',
+        result.note || ''
+      ]);
+    }
+  }
+
+  filteredItems.value.forEach(item => {
+    data.push([
+      item.name, '', '', '', '', '', '', '',
+      item.amount, item.unit, item.price,
+      item.price * item.amount,
+      '', item.note
+    ]);
+  });
+
+  data.push(['總計', '', '', '', '', '', '', '', '', '', '', totalSubtotal2.value, '', '']);
+
+  const worksheet = XLSX.utils.aoa_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, '工料分離報價單');
 
   const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
   const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
