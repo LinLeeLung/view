@@ -82,6 +82,7 @@ const form = ref({
 
 const calcOneSide = (length, depth, frontEdge, backEdge, wrapBack, wrapFront, wrapRight, wrapLeft, limit) => {
   const thickness = depth + frontEdge + backEdge + wrapBack + wrapFront;
+  const frontEdgeLength =(depth+length)*2
   let calcSteps = '';
   let cmValue = 0;
   let area = Math.round(length * thickness / 900);
@@ -111,7 +112,7 @@ const calcOneSide = (length, depth, frontEdge, backEdge, wrapBack, wrapFront, wr
     cmValue += cmDaubo;
   }
 
-  return { cmValue, calcSteps, area, calcSteps2 };
+  return { cmValue, calcSteps, area, calcSteps2 ,frontEdgeLength};
 };
 
 const calculate = () => {
@@ -120,7 +121,7 @@ const calculate = () => {
     return;
   }
   const f = form.value;
-  const { cmValue, calcSteps, area, calcSteps2 } = calcOneSide(
+  const { cmValue, calcSteps, area, calcSteps2,frontEdgeLength } = calcOneSide(
     f.length, f.depth, f.frontEdge, f.backEdge, f.wrapBack,
     f.wrapFront, f.wrapRight, f.wrapLeft, f.limit
   );
@@ -138,6 +139,7 @@ const calculate = () => {
     area,
     calculationSteps: calcSteps.trim(),
     calculationSteps2: calcSteps2.trim(),
+    frontEdgeLength:Math.round(frontEdgeLength)
   });
 };
 

@@ -1,8 +1,8 @@
 <template>
   <div>
     <h3 class="text-lg font-semibold text-gray-700 mb-2">計價結果</h3>
-    <div class="overflow-auto">
-      <table class="w-full border-collapse border border-gray-400 table-fixed">
+    <div class="overflow-x-auto w-full max-w-full">
+      <table class="w-full table-fixed border-collapse border border-gray-400">
         <!-- ✅ 使用 colgroup 控制欄寬 -->
         <colgroup>
           <col
@@ -11,7 +11,7 @@
             :style="{ width: width + 'px' }"
           />
         </colgroup>
-        <thead>
+ <thead>
   <tr>
     <th
       v-for="(header, index) in headers"
@@ -113,7 +113,7 @@
   </div>
 </template>
 <script setup>
-import { defineProps, onMounted, ref, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 
 const emit = defineEmits(['update:columnWidths']);
 
@@ -124,18 +124,25 @@ const props = defineProps({
   columnWidths: { type: Array, default: () => [] }
 });
 
-const defaultWidths = [100, 120, 120, 100, 160, 100, 80, 80, 80, 60, 80, 100, 200, 200];
 const headers = [
-  '項目', '前沿', '背牆/後厚', '倒包', '摘要', '顏色', '長', '深', '公分數/數量', '單位', '單價', '未稅價', '計算過程', '備註'
+  '項目', '前沿', '背牆/後厚', '倒包', '摘要', '顏色',
+  '長', '深', '公分數/數量', '單位', '單價', '未稅價', '計算過程', '備註'
 ];
-const localColumnWidths = ref([...defaultWidths]);
 
-onMounted(() => {
-  if (Array.isArray(props.columnWidths) && props.columnWidths.length > 0) {
-    localColumnWidths.value = [...props.columnWidths];
-  }
-});
+const localColumnWidths = ref([]);
 
+// ✅ 初始化與監聽 props.columnWidths 的變化
+watch(
+  () => props.columnWidths,
+  (newVal) => {
+    if (Array.isArray(newVal) && newVal.length > 0) {
+      localColumnWidths.value = [...newVal];
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+// ✅ 使用者手動調整欄寬時回傳給父元件
 watch(localColumnWidths, (val) => {
   emit('update:columnWidths', val);
 }, { deep: true });
@@ -176,6 +183,10 @@ function formatWrapDetails(index, result) {
   return isValid(result.wrapBack) ? result.wrapBack : '';
 }
 </script>
+
+
+
+
 
 <style scoped>
 .table-fixed th,

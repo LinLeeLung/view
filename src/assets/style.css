@@ -14,7 +14,7 @@ body, .result-container {
   margin-top: 20px;
   background-color: whitE;
   border-radius: 8px;
-  padding: 20px;
+  padding: 4px;
 }
 
 /* ✅ 表格樣式 */
@@ -22,8 +22,9 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  table-layout: auto;
-  margin-right: 10px;
+  table-layout: fixed; /* ✅ 固定寬度避免表格爆寬 */
+  margin: 0; /* ✅ 不要 margin-right: 10px */
+  border-spacing: 0;
 }
 
 th, td {
@@ -90,6 +91,13 @@ h1, h3 {
   padding: 2px 0;
   text-align: left;
 }
+.result-container p.notice {
+  line-height: 0.1;
+  font-size: 12px;
+  margin: 0;
+  padding: 0;
+
+}
 
 /* ✅ 固定欄寬 */
 .w120 { width: 120px; }
@@ -155,13 +163,15 @@ h1, h3 {
   .result-container {
     padding: 10px;
     font-size: 13px;
+    
   }
 
   table {
+    
     display: block;
     overflow-x: auto;
     white-space: nowrap;
-    width: 100%;
+    width: 95%;
   }
 
   th, td {
@@ -177,20 +187,55 @@ h1, h3 {
 
 /* ✅ 列印優化，防止手機列印內容不見 */
 @media print {
-  * {
-    .fixed-pdf {
-    width: 794px; /* A4 寬度（mm 轉 px 約） */
-    max-width: 794px;
-    font-size: 14px;
-    zoom: 1;
-  }
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
   html, body {
     overflow: visible !important;
     height: auto !important;
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+  }
+
+  .result-container {
+    width: 794px; /* A4寬度 px 對應 */
+    max-width: 794px;
+    margin: 0 auto;
+    overflow: visible !important;
+    display: block !important;
+    box-sizing: border-box;
+    padding: 0;
+    border: none;
+    background: white;
+  }
+
+  table {
+    width: 100% !important;
+    table-layout: fixed;
+    border-collapse: collapse !important;
+    margin: 0;
+    border-spacing: 0;
+  }
+
+  th, td {
+    
+    box-sizing: border-box !important;
+ 
+    border: 1px solid black !important;
+    padding: 4px !important;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    
+  }
+
+  th {
+    background-color: #e5f4f9 !important;
+    color: black !important;
+    font-weight: bold;
+  }
+
+  /* 防止邊框消失、顏色不印出 */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   table, thead, tbody, tr, th, td {
@@ -200,11 +245,25 @@ h1, h3 {
     transform: none !important;
   }
 
-  .result-container {
-    overflow: visible !important;
-    display: block !important;
+  .note,
+  .calprogress {
+    font-size: 12px;
+    color: black;
+    text-align: left;
+  }
+
+  /* 緊密文字段落（適用於備註區 p 標籤） */
+  .result-container p {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.5px !important;
   }
 }
+
+
+
+
 :root {
   --color-red-500: rgb(239, 68, 68);
   --color-red-600: rgb(220, 38, 38);
@@ -240,24 +299,4 @@ th .resize-handle {
   cursor: col-resize;
   z-index: 10;
   background-color: transparent;
-}
-@media print {
-  table, thead, tbody, th, td, tr {
-    border: 1px solid black !important;
-    border-collapse: collapse !important;
-  }
-
-  th, td {
-    padding: 4px !important;
-  }
-
-  th {
-    background-color: #e5f4f9 !important; /* 若你希望列印時也保留背景色 */
-    color: black !important;
-  }
-
-  * {
-    -webkit-print-color-adjust: exact !important; /* 保留背景色 */
-    print-color-adjust: exact !important;
-  }
 }

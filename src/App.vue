@@ -80,6 +80,10 @@
            <button @click="generateQuotation1" class="m-1 p-1 bg-purple-500 text-white rounded hover:bg-purple-600">
             電腦報價單
            </button>
+           <button @click="exportToExcel" class="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600">
+            匯出 Excel
+          </button>
+
            <label class = "m-1" for="checkbox">工料分離</label>
            <input
             type="checkbox"
@@ -115,6 +119,8 @@
           聯絡人<input type = text v-model="contacter" placeholder ="請輸入聯絡人"/>
           地址<input type = text v-model="add" placeholder ="請輸入地址"/>
           
+
+        
 
       </div>
 
@@ -163,9 +169,11 @@
       
 
       <!-- 附加項目區塊 -->
+       <label>顯示附加項目</label>
+       <input type="checkbox" v-model="showItems" />
 
       <h3 class="text-lg font-semibold text-gray-700 mb-2">附加項目</h3>
-      <div >
+      <div v-if="showItems">
          <Items v-model:items="itemList" />
       </div>
 
@@ -179,11 +187,24 @@
           v-model="isSep"
           class="m-1 h-4 w-4 text-green-500 focus:ring-green-500 border-gray-300 rounded"
         />
-     <div class="result-container" style="--tw-bg-opacity: 1; background-color: white !important;">
+        
+           <!-- ✅ 新增欄寬設定控制區 -->
+          <label class="ml-4">欄寬設定：</label>
+          <select v-model="selectedLayout" @change="applyColumnWidthLayout" class="p-1 border rounded-md text-sm">
+            <option v-for="(cols, name) in columnWidthPresets" :key="name" :value="name">{{ name }}</option>
+          </select>
+          <input v-model="newLayoutName" placeholder="新設定名稱" class="p-1 border rounded-md text-sm w-[120px] ml-2" />
+          <button @click="saveColumnWidthLayout" class="px-2 m-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">儲存</button>
+          <button @click="deleteColumnWidthLayout(selectedLayout)" class="px-2 m-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">刪除</button>
+          <p v-if="colmessage" class="text-sm text-gray-600">{{ colmessage }}</p>
+          <label>顯示表頭</label>
+          <input type="checkbox" v-model="showhead" />
+
+          <div class="result-container" style="--tw-bg-opacity: 1; background-color: white !important;">
 
             <!-- 表頭-->
           
-          <QuotationHeader 
+          <QuotationHeader v-if="showhead"
             :customer="customer"
             :tel="tel"
             :fax="fax"
@@ -196,8 +217,12 @@
             :filteredItems="filteredItems"
             :totalSubtotal="totalSubtotal"
             :columnWidths="localColumnWidths"
-            @update:columnWidths="val => localColumnWidths = val"
-            
+            @update:columnWidths="val => {
+              if (JSON.stringify(val) !== JSON.stringify(localColumnWidths)) {
+                localColumnWidths = val;
+              }
+            }"
+                        
           />
           <WMSTable v-if="isSep"
             :sepPrice="sepPrice"
@@ -209,268 +234,54 @@
       </div>
  </div>
 </template>
-
-<script >
-import { useDynamicCardList } from './composables/useDynamicCardList.js'
+<script setup>
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import axios from 'axios';
+import html2pdf from 'html2pdf.js';
+import styleText from './assets/style.css?raw';
 import { isObject } from './utlis/validate.js';
+import { applySeparationItems } from './Composables/autoSeparationLogic.js';
+
 import One from './components/One.vue';
 import L from './components/L.vue';
 import M from './components/M.vue';
 import Iland from './components/Iland.vue';
 import Items from './components/Items.vue';
-import axios from 'axios'; // Import axios for API requests
-
 import Leg from './components/Leg.vue';
-import QuotationHeader from './components/QuotationHeader.vue';
-import QuotationTable from './components/QuotationTable.vue';
-import WMSTable from './components/WMSTable.vue'; 
 import Wrap from './components/Wrap.vue';
-import { applySeparationItems } from './Composables/autoSeparationLogic.js'; // Import the separation logic
 import DoorFront from './components/DoorFront.vue';
 import Wall from './components/Wall.vue';
-import styleText from './assets/style.css?raw';
-import html2pdf from 'html2pdf.js';
-import { ref, computed, nextTick, onMounted, watch } from 'vue';
+import QuotationHeader from './components/QuotationHeader.vue';
+import QuotationTable from './components/QuotationTable.vue';
+import WMSTable from './components/WMSTable.vue';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+
+const showhead=ref(true)
+const showItems=ref(true)
+const API_BASE_URL = 'https://junchengstone.synology.me/accapi/';
 
 
-
-
-
-
-const columnWidths = ref([100, 120, 120, 100, 160, 100, 80, 80, 80, 60, 80, 100, 200, 200]);
-const localColumnWidths = ref([100, 120, 120, 100, 160, 100, 80, 80, 80, 60, 80, 100, 200, 200]); // 用來儲存每欄的寬度
-
-
-const generateQuotation1 = () => {
-  // ✅ 取得結果區內容
-  const resultContent = document.querySelector(".result-container");
-
-  // ✅ 開啟新視窗
-  const printWindow = window.open("", "_blank");
-
-  // ✅ 讀取樣式並將 HTML 內容插入
-  printWindow.document.write(`
-    <html>
-    <head>
-      <title>報價單</title>
-      <style>
-        ${styleText}
-      </style>
-      
-    </head>
-    <body>
-     
-      <!-- ✅ 插入結果內容 -->
-      <div class="result-container">
-        ${resultContent.innerHTML}
-      </div>
-    </body>
-    </html>
-  `);
-
-  // ✅ 關閉文件流，確保內容寫入
-  printWindow.document.close();
-
-  // ✅ 加載完成後自動執行列印
-  printWindow.onload = () => {
-    printWindow.print();
-  };
-};
-
-const generateQuotation = async () => {
-  const element = document.querySelector(".result-container");
-  if (!element) {
-    alert("找不到報價內容，請先產生報價！");
-    return;
-  }
-
-  await nextTick(); // 確保 Vue 渲染完
-
-  const opt = {
-    margin: 0.5,
-    filename: `報價單_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true
-    },
-    jsPDF: {
-      unit: 'mm',
-      format: 'a4',
-      orientation: 'portrait'
-    },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-  };
-
-  html2pdf().set(opt).from(element).save();
-};
-
-
-
-
-
-
-
-
-const calculate = async () => {
-  await nextTick(); // 確保 DOM 更新完成
-  // 執行計算邏輯
-};
-
-
-export default {
-  name: 'App',
-  components: { One, L, M, Iland, Items ,Leg, QuotationHeader, QuotationTable , WMSTable, Wrap, DoorFront, Wall },
-  setup() {
-  
-  const orderedFilteredResults = computed(() => {
-  return Object.fromEntries(
-    cardOrderList.value
-      .map(({ id }) => [id, results.value[id]])
-      .filter(([_, r]) => r?.isEnabled)
-  );
+onMounted(() => {
+  fetchFiles();
+  fetchCustomers();
+  fetchData()
 });
- 
-   const cardOrderList = ref([]);
-    const typeCounters = ref({
-      '一字型': 1,
-      'L': 1,
-      'M': 1,
-      '中島': 1,
-      '側落腳': 1,
-      '倒包': 1,
-      '假腳或門檻': 1,
-      '高背': 1,
-    });
 
-    const oneCardList = ref([]);
-    const lCardList = ref([]);
-    const mCardList = ref([]);
-    const islandCardList = ref([]);
-    const legCardList = ref([]);
-    const wrapCardList = ref([]);
-    const doorCardList = ref([]);
-    const wallCardList = ref([]);
-   const addCard = (type) => {
-      const knownTypes = ['一字型', 'L', 'M', '中島', '側落腳', '倒包', '假腳或門檻', '高背'];
-      if (!knownTypes.includes(type)) {
-        alert(`❌ 不支援的元件類型：${type}`);
-        return;
-      }
-
-      const id = `${type}-${typeCounters.value[type]++}`;
-
-      // 對應各元件清單
-      const listMap = {
-        '一字型': oneCardList,
-        'L': lCardList,
-        'M': mCardList,
-        '中島': islandCardList,
-        '側落腳': legCardList,
-        '倒包': wrapCardList,
-        '假腳或門檻': doorCardList,
-        '高背': wallCardList,
-      };
-
-  listMap[type].value.push(id);
-  cardOrderList.value.push({ id, type, isEnabled: true });
-};
-
-
-    const removeCard = (id, type) => {
-      const listMap = {
-        '一字型': oneCardList,
-        'L': lCardList,
-        'M': mCardList,
-        '中島': islandCardList,
-        '側落腳': legCardList,
-        '倒包': wrapCardList,
-        '假腳或門檻': doorCardList,
-        '高背': wallCardList,
-      };
-      const list = listMap[type];
-      const index = list.value.indexOf(id);
-      if (index > -1) list.value.splice(index, 1);
-      cardOrderList.value = cardOrderList.value.filter((c) => c.id !== id);
-      delete results.value[id];
-    };
-
-  const getComponent = (type) => {
-  const map = {
-    '一字型': One,
-    'L': L,
-    'M': M,
-    '中島': Iland,
-    '側落腳': Leg,
-    '倒包': Wrap,
-    '假腳或門檻': DoorFront,
-    '高背': Wall,
-  };
-  if (!map[type]) {
-    console.log(`⚠️ 無法找到元件類型: "${type}"，將顯示佔位元件。`);
-    return {
-     
-    };
-  }
-  return map[type];
-};
-
-
-
-
-    const restoreCardListsFromOrderList = (orderList) => {
-  // 清空所有清單
-  oneCardList.value = []
-  lCardList.value = []
-  mCardList.value = []
-  islandCardList.value = []
-  legCardList.value = []
-  wrapCardList.value = []
-  doorCardList.value = []
-  wallCardList.value = []
-
-  orderList.forEach(({ id, type }) => {
-    const num = parseInt(id.split('-')[1]);
-    if (!isNaN(num) && num >= typeCounters.value[type]) {
-      typeCounters.value[type] = num + 1;
-    }
-
-    switch (type) {
-      case '一字型': oneCardList.value.push(id); break;
-      case 'L': lCardList.value.push(id); break;
-      case 'M': mCardList.value.push(id); break;
-      case '中島': islandCardList.value.push(id); break;
-      case '側落腳': legCardList.value.push(id); break;
-      case '倒包': wrapCardList.value.push(id); break;
-      case '假腳或門檻': doorCardList.value.push(id); break;
-      case '高背': wallCardList.value.push(id); break;
-    }
-  });
-};
-
-  const applyUnifiedPrice = () => {
+const applyUnifiedPrice = () => {
   const price = parseInt(unifiedPrice.value);
   if (isNaN(price) || price <= 0) {
     alert("請輸入有效的價格");
     return;
   }
-  console.log(`✅ 統一價格: ${unifiedPrice.value}`);
-
   Object.keys(results.value).forEach((key) => {
-  // ✅ 不論是否勾選，都強制更新 unitPrice
-  console.log(key, results.value[key]);
-  results.value[key].unitPrice = unifiedPrice.value; // ✅ 統一價格
-  results.value[key].forceUpdate = true; // ✅ 強制更新
-  if(key.includes('假腳或門檻')){
-    results.value[key].stonePrice = unifiedPrice.value // 假腳或門檻價格的石材價格
-  }
+    results.value[key].unitPrice = unifiedPrice.value;
+    results.value[key].forceUpdate = true;
+    if (key.includes('假腳或門檻')) {
+      results.value[key].stonePrice = unifiedPrice.value;
+    }
   });
-
-nextTick(() => {
-  calculate(); // ✅ 重新計算結果
-});
-
-console.log('🔄 已統一所有元件價格');
+  nextTick(() => calculate());
 };
 
 const applyUnifiedColor = () => {
@@ -479,205 +290,195 @@ const applyUnifiedColor = () => {
     alert("請輸入有效的顏色");
     return;
   }
-
-  console.log(`✅ 統一顏色: ${newColor}`);
-
   Object.keys(results.value).forEach((key) => {
     if (results.value[key]?.isEnabled) {
       results.value[key].color = newColor;
     }
   });
-
-  nextTick(() => {
-    calculate(); // ✅ 重新計算結果
-  });
-
-  console.log("🔄 已統一所有元件顏色");
+  nextTick(() => calculate());
 };
 
-
-    
-    
-    const results = ref({});
-    const resultsProxy = computed(() => results.value)
-    const unifiedPrice = ref(0);
-    const unifiedColor = ref("");
-    const customer = ref('');
-    const tel = ref('');
-    const fax = ref('');
-    const contacter = ref('');
-    const add = ref('');
-    const itemList = ref([]);
-    const files = ref([]);
-    const newFilename = ref('');
-    const selectedFile = ref('');
-    const message = ref('');
-    const cuskeyword = ref('');
-    const selectedCustomer = ref('');
-    const customers=ref([]);
-    const isSep = ref(false);
-    const sepPrice = ref(750);
-    const totalFrontEdgeLength= computed(() => {
-      const total = Object.values(results.value).reduce((sum, r) => {
-        if (r?.isEnabled && r?.frontEdgeLength) {
-          return sum + parseFloat(r.frontEdgeLength);
-        }
-        return sum;
-      }, 0);
-      return total.toFixed(0);
-    });
-    let separationTimeout = null;
-watch(
-  [isSep, () => totalFrontEdgeLength.value],
-  () => {
-    clearTimeout(separationTimeout);
-    separationTimeout = setTimeout(() => {
-      applySeparationItems({ isSep, itemList, totalFrontEdgeLength });
-    }, 100);
-  },
-  { flush: 'post' }
-);
- 
-// ⬇️ 引入自定義卡片管理 composable
+const calculate = async () => {
+  await nextTick();
+};
+const message = ref('');
+const colmessage = ref('');
+const selectedLayout = ref('預設欄寬');
+const newLayoutName = ref('');
+const localColumnWidths = ref([60, 60, 60, 60, 100, 60, 50, 50, 60, 40, 60, 60, 90, 90]);
+const columnWidthPresets = ref({ '預設欄寬': [...localColumnWidths.value] });
 
 
 
-
-
-const fetchCustomers = async () => {
-        try {
-            let response = await fetch("https://junchengstone.synology.me/acc/proxy.php");
-            let data = await response.json();
-
-            if (Array.isArray(data)) {
-                customers.value = data; // 使用 ref 變數
-            } else {
-                console.error("回應的資料格式錯誤！", data);
-            }
-        } catch (error) {
-            console.error("無法獲取客戶資料：", error);
-        }
-      };
-
-  onMounted(() => {
-      console.log("正在獲取客戶資料...");
-      fetchCustomers(); // 自動載入客戶資料
-      fetchData(); // 自動載入 API 資料
-      console.log('isSep:', isSep.value);
-      });
-   ///
-   const filterCustomers = computed(() => {
-  let keyword = cuskeyword.value.trim().toLowerCase();
-
-  // ✅ 確保 customers 是陣列
-  if (!Array.isArray(customers.value)) {
-    console.error("customers 資料異常", customers.value);
-    return [];
+const applyColumnWidthLayout = () => {
+  const preset = columnWidthPresets.value[selectedLayout.value];
+  if (preset) {
+    localColumnWidths.value = [...preset];
+    colmessage.value = `已套用「${selectedLayout.value}」欄寬設定 ${localColumnWidths.value}`;
   }
+};
 
-  // ✅ 篩選邏輯
-  return customers.value.filter((c) =>
-    c.name.toLowerCase().includes(keyword)
-  );
+const setDefaultColumnWidthLayout = (layoutName) => {
+  if (!columnWidthPresets.value[layoutName]) return;//沒有名稱返回
+  selectedLayout.value = layoutName;
+  localColumnWidths.value = [...columnWidthPresets.value[layoutName]];
+  colmessage.value = `「${layoutName}」已設為預設欄寬並套用 ${localColumnWidths.value}`;
+};
+
+const deleteColumnWidthLayout = (layoutName) => {
+  if (layoutName === '預設欄寬') return alert('預設欄寬無法刪除');
+  if (!columnWidthPresets.value[layoutName]) return;
+  delete columnWidthPresets.value[layoutName];
+  if (selectedLayout.value === layoutName) {
+    selectedLayout.value = '預設欄寬';
+    applyColumnWidthLayout();
+  }
+  colmessage.value = `已刪除「${layoutName}」設定`;
+};
+
+const saveColumnWidthLayout = async () => {
+  if (!newLayoutName.value) return alert('請輸入新設定名稱');
+
+  columnWidthPresets.value[newLayoutName.value] = [...localColumnWidths.value];
+  selectedLayout.value = newLayoutName.value;
+  newLayoutName.value = '';
+
+  try {
+    await axios.post(`${API_BASE_URL}?action=savePresets`, {
+      presets: columnWidthPresets.value,
+      default: selectedLayout.value
+    });
+    colmessage.value = `已儲存「${selectedLayout.value}」欄寬設定`;
+  } catch (err) {
+    console.error('❌ 儲存欄寬設定失敗', err);
+    colmessage.value = '儲存欄寬設定失敗';
+  }
+};
+onMounted(async () => {
+  try {
+    const res = await axios.get(`${API_BASE_URL}?action=loadPresets`);
+    
+    if (res.data && res.data.data) {
+      columnWidthPresets.value = res.data.data.presets;
+      selectedLayout.value = res.data.data.default || '預設欄寬';
+      applyColumnWidthLayout();
+      colmessage.value = `已載入「${selectedLayout.value}」欄寬設定`;
+    }
+  } catch (err) {
+    console.warn('⚠️ 載入欄寬設定失敗', err);
+    colmessage.value = '⚠️ 載入欄寬設定失敗';
+  }
 });
 
 
 
-   // API URL
-const url =
-  'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLigc6YtS8LeqlGNHC-izL0xaWOPe_q4nGx1b0ecoRSO3zVu53MKoLdd5Ti7qQmRmOKz3YJzyYl9jYfOqAyuJp7vhmwHXKSp6w--mSBwGMgVHC4-9v1c1bT9tgfY0e4zqq4FK5HfZHk8JXsIqGdNeixPUu6YNuxJ-coCUz1kiqo7cC4zu9pw5xIlBuI5MiROhhGgcRvKJRkci7xDfqM4gijY_Se-ARXAKQyANX1FPokbaN1hQU7d_C7uAsUG1Wr5PlXz2JKxv3el4rsF19KJht0E-MYPGQ&lib=MIG840YcRyBozKsoJjxkgz2my7uZSrO0E';
+watch([columnWidthPresets, selectedLayout], () => {
+  localStorage.setItem('columnPresets', JSON.stringify({
+    presets: columnWidthPresets.value,
+    default: selectedLayout.value
+  }));
+}, { deep: true });
 
-// 取得 API 資料
-const fetchData = async () => {
- // loading.value = true;
-  try {
-    const response = await axios.get(url);
-    itemList.value = response.data;
-    //console.log('資料獲取成功：', itemList.value);
-  } catch (error) {
-    console.error('資料獲取失敗：', error);
-    items.value = [];
-  } finally {
-   // loading.value = false;
-  }
-};
+const itemList = ref([]);
+const files = ref([]);
+const newFilename = ref('');
+const selectedFile = ref('');
 
-// 自動載入資料
+const results = ref({});
+const resultsProxy = computed(() => results.value);
 
-    // API base URL for localhost since both frontend and backend are in the same Codespace
-    const API_BASE_URL ="https://junchengstone.synology.me/accapi/";
+const cuskeyword = ref('');
+const customers = ref([]);
+const selectedCustomer = ref(null);
+const customer = ref('');
+const tel = ref('');
+const fax = ref('');
+const contacter = ref('');
+const add = ref('');
 
-    // Fetch the list of files on component mount
-    const fetchFiles = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}?action=files`);
-        files.value = response.data.files;
-      } catch (error) {
-        message.value = '無法載入檔案列表: ' + error.message;
-      }
-    };
+const unifiedPrice = ref(0);
+const unifiedColor = ref('');
+const isSep = ref(false);
+const sepPrice = ref(750);
 
-    // Call fetchFiles when the component is mounted
-    fetchFiles();
+const cardOrderList = ref([]);
 
-    const updateResult = (result) => {
-      // console.log('[updateResult]', result.index);
-    const current = results.value[result.index];
-     const isChanged = !current || JSON.stringify(current) !== JSON.stringify(result);
-     
+const filteredItems = computed(() => itemList.value.filter(item => item.checked));
+
+const filteredResults = computed(() => {
+  return Object.fromEntries(
+    Object.entries(results.value)
+      .filter(([_, r]) => r?.isEnabled)
+  );
+});
+
+const orderedFilteredResults = computed(() => {
+  return Object.fromEntries(
+    cardOrderList.value
+      .map(({ id }) => [id, results.value[id]])
+      .filter(([_, r]) => r?.isEnabled)
+  );
+});
+
+const hasValidResults = computed(() => {
+  return Object.keys(filteredResults.value).length > 0 || filteredItems.value.length > 0;
+});
+
+const totalSubtotal = computed(() => {
+  const shapeTotal = Object.values(filteredResults.value).reduce(
+    (sum, r) => sum + (parseFloat(r?.subtotal) || 0), 0
+  );
+  const itemsTotal = filteredItems.value.reduce(
+    (sum, item) => sum + (item.price * item.amount || 0), 0
+  );
+  return shapeTotal + itemsTotal;
+});
+
+const totalSubtotal2 = computed(() => {
+  const shapeTotal = Object.values(filteredResults.value).reduce(
+    (sum, r) => sum + (parseFloat(r?.subtotal2) || 0), 0
+  );
+  const itemsTotal = filteredItems.value.reduce(
+    (sum, item) => sum + (item.price * item.amount || 0), 0
+  );
+  return shapeTotal + itemsTotal;
+});
+
+
+const totalFrontEdgeLength = computed(() => {
+  return Object.values(resultsProxy.value).reduce((sum, r) => {
+    if (r?.isEnabled && r?.frontEdgeLength) {
+      return sum + parseFloat(r.frontEdgeLength)
+    }
+    return sum
+  }, 0).toFixed(0)
+})
+
+watch(isSep, () => {
+  applySeparationItems({ isSep, itemList, totalFrontEdgeLength })
+  // console.log("totalfrontedgelength:",totalFrontEdgeLength)
+}, { immediate: true })
+
+
+const updateResult = (result) => {
+  const current = results.value[result.index];
+  const isChanged = !current || JSON.stringify(current) !== JSON.stringify(result);
   if (isChanged) {
     results.value[result.index] = { ...result };
   }
 };
 
-
-
-    const filteredResults = computed(() => {
-      const entries = Object.entries(results.value)
-        .filter(([_, r]) => r?.isEnabled)
-        .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }));
-      return Object.fromEntries(entries);
-    });
-
-    const filteredItems = computed(() => {
-      return itemList.value.filter(item => item.checked);
-    });
-
-    const hasValidResults = computed(() => 
-      Object.keys(filteredResults.value).length > 0 || filteredItems.value.length > 0
-    );
-
-    const totalSubtotal = computed(() => {
-      const shapeTotal = Object.values(filteredResults.value).reduce(
-        (sum, r) => sum + (parseFloat(r?.subtotal) || 0), 0
-      );
-      const itemsTotal = filteredItems.value.reduce(
-        (sum, item) => sum + (item.price * item.amount || 0), 0
-      );
-      return shapeTotal + itemsTotal;
-    });
-    const totalSubtotal2 = computed(() => {
-      const shapeTotal = Object.values(filteredResults.value).reduce(
-        (sum, r) => sum + (parseFloat(r?.subtotal2) || 0), 0
-      );
-      const itemsTotal = filteredItems.value.reduce(
-        (sum, item) => sum + (item.price * item.amount || 0), 0
-      );
-      return shapeTotal + itemsTotal;
-    });
-    
-    
-
-    // Save the current state to a file
-    const saveFile = async () => {
-  if (!newFilename.value) {
-    message.value = '請輸入檔案名稱';
-    return;
+const fetchFiles = async () => {
+  try {
+    const res = await axios.get('https://junchengstone.synology.me/accapi/?action=files');
+    files.value = res.data.files;
+  } catch (err) {
+    message.value = '載入檔案列表失敗';
   }
-  
-  const filename = newFilename.value.endsWith('.json')
-    ? newFilename.value
-    : `${newFilename.value}.json`;
+};
+
+const saveFile = async () => {
+  if (!newFilename.value) return message.value = '請輸入檔案名稱';
 
   const content = {
     cardOrderList: cardOrderList.value,
@@ -691,199 +492,270 @@ const fetchData = async () => {
     cuskeyword: cuskeyword.value,
     selectedCustomer: selectedCustomer.value,
     isSep: isSep.value,
-    columnWidths: columnWidths.value,
     localColumnWidths: localColumnWidths.value,
-
   };
 
-  try {
-    await axios.post(`${API_BASE_URL}?action=save`, {
-      filename,
-      content
-    });
-
-    message.value =` 檔案 ${filename} 已儲存`;
-    newFilename.value = '';
-    fetchFiles(); // 重新載入檔案列表
-  } catch (error) {
-    message.value = '儲存失敗: ' + error.message;
-  }
+  await axios.post('https://junchengstone.synology.me/accapi/?action=save', {
+    filename: newFilename.value.endsWith('.json') ? newFilename.value : `${newFilename.value}.json`,
+    content
+  });
+  message.value = '檔案已儲存';
+  newFilename.value = '';
+  fetchFiles();
 };
+
 const detectTypeFromId = (id) => {
   const knownTypes = ['一字型', 'L', 'M', '中島', '側落腳', '倒包', '假腳或門檻', '高背'];
   return knownTypes.find(type => id.startsWith(type)) || '一字型';
 };
 
-const fillDetails = () => {
-  if (selectedCustomer.value) {
-    customer.value = selectedCustomer.value.name || "";
-    tel.value = selectedCustomer.value.tel || "";
-    fax.value = selectedCustomer.value.fax || "";
-  }
-};
-
-
-    const loadFile = async () => {
+const loadFile = async () => {
   if (!selectedFile.value) return;
-
   try {
-    const response = await axios.get(`${API_BASE_URL}?action=load`, {
-      params: { filename: selectedFile.value },
+    const res = await axios.get('https://junchengstone.synology.me/accapi/?action=load', {
+      params: { filename: selectedFile.value }
     });
 
-    const data = response.data.content;
-    
-    // ⬇️ 還原 itemList（需比對）
-    if (Array.isArray(data.itemList)) {
-      const newItemList = data.itemList.map(item => ({ ...item }));
-      if (JSON.stringify(newItemList) !== JSON.stringify(itemList.value)) {
-        itemList.value = newItemList;
-      }
+    const data = res.data.content;
+    itemList.value = data.itemList || [];
+    results.value = data.results || {};
+    isSep.value = data.isSep || false;
+    customer.value = data.customer || '';
+    tel.value = data.tel || '';
+    fax.value = data.fax || '';
+    contacter.value = data.contacter || '';
+    add.value = data.add || '';
+    cuskeyword.value = data.cuskeyword || '';
+    selectedCustomer.value = data.selectedCustomer || '';
+
+    if (data.cardOrderList) {
+      cardOrderList.value = data.cardOrderList.map(c => ({ ...c, isEnabled: c.isEnabled !== false }));
+    } else {
+      cardOrderList.value = Object.keys(data.results || {}).map(id => ({ id, type: detectTypeFromId(id), isEnabled: true }));
     }
-
-    // ⬇️ 還原 results
-    if (data.results) {
-      const newResults = { ...data.results };
-      if (JSON.stringify(newResults) !== JSON.stringify(results.value)) {
-        results.value = newResults;
-      }
-    }
-
-    // ⬇️ 還原 isSep
-    if (typeof data.isSep === 'boolean' && data.isSep !== isSep.value) {
-      isSep.value = data.isSep;
-    }
-
-    // ⬇️ 還原卡片清單
-    if (Array.isArray(data.cardOrderList)) {
-  // 🟢 有 cardOrderList，就直接使用
-  const newOrder = data.cardOrderList.map(c => ({
-    ...c,
-    isEnabled: c.isEnabled !== false
-  }));
-  if (JSON.stringify(newOrder) !== JSON.stringify(cardOrderList.value)) {
-    cardOrderList.value = newOrder;
-    restoreCardListsFromOrderList(cardOrderList.value);
-  }
-
-} else if (data.results && typeof data.results === 'object') {
-  // 🟡 舊版資料推測建立 cardOrderList
-  const fallbackList = Object.keys(data.results).map(id => {
-    return {
-      id,
-      type: detectTypeFromId(id),
-      isEnabled: true
-    };
-  });
-
-  cardOrderList.value = fallbackList;
-  restoreCardListsFromOrderList(fallbackList);
-}
-
-    // ⬇️ 還原欄寬
-    if (Array.isArray(data.columnWidths)) {
-      columnWidths.value = data.columnWidths;
-    }
-    if (Array.isArray(data.localColumnWidths)) {
-      localColumnWidths.value = data.localColumnWidths;
-    }
-
-    // ⬇️ 還原客戶欄位（逐一比對）
-    if (data.customer !== customer.value) customer.value = data.customer || '';
-    if (data.tel !== tel.value) tel.value = data.tel || '';
-    if (data.fax !== fax.value) fax.value = data.fax || '';
-    if (data.contacter !== contacter.value) contacter.value = data.contacter || '';
-    if (data.add !== add.value) add.value = data.add || '';
-    if (data.cuskeyword !== cuskeyword.value) cuskeyword.value = data.cuskeyword || '';
-    if (data.selectedCustomer !== selectedCustomer.value) selectedCustomer.value = data.selectedCustomer || '';
-
-    message.value = `檔案 ${selectedFile.value} 已載入`;
+    message.value = `已載入 ${selectedFile.value}`;
     selectedFile.value = '';
-
-  } catch (error) {
-    message.value = '載入失敗: ' + error.message;
+  } catch (err) {
+    message.value = '載入失敗';
   }
 };
 
+const deleteFile = async () => {
+  if (!selectedFile.value) return;
+  await axios.delete('https://junchengstone.synology.me/accapi/?action=delete', {
+    params: { filename: selectedFile.value }
+  });
+  message.value = `已刪除 ${selectedFile.value}`;
+  selectedFile.value = '';
+  fetchFiles();
+};
 
+const fetchData = async () => {
+  try {
+    const res = await axios.get('https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLigc6YtS8LeqlGNHC-izL0xaWOPe_q4nGx1b0ecoRSO3zVu53MKoLdd5Ti7qQmRmOKz3YJzyYl9jYfOqAyuJp7vhmwHXKSp6w--mSBwGMgVHC4-9v1c1bT9tgfY0e4zqq4FK5HfZHk8JXsIqGdNeixPUu6YNuxJ-coCUz1kiqo7cC4zu9pw5xIlBuI5MiROhhGgcRvKJRkci7xDfqM4gijY_Se-ARXAKQyANX1FPokbaN1hQU7d_C7uAsUG1Wr5PlXz2JKxv3el4rsF19KJht0E-MYPGQ&lib=MIG840YcRyBozKsoJjxkgz2my7uZSrO0E');
+    itemList.value = res.data;
+  } catch (err) {
+    itemList.value = [];
+  }
+};
 
+const fetchCustomers = async () => {
+  try {
+    const res = await axios.get('https://junchengstone.synology.me/acc/proxy.php');
+    customers.value = res.data;
+  } catch (err) {
+    customers.value = [];
+  }
+};
 
+const filterCustomers = computed(() => {
+  return customers.value.filter(c =>
+    c.name.toLowerCase().includes(cuskeyword.value.trim().toLowerCase())
+  );
+});
 
-    // Delete a file
-    const deleteFile = async () => {
-      if (!selectedFile.value) return;
-      try {
-        await axios.delete(`${API_BASE_URL}?action=delete`, {
-          params: { filename: selectedFile.value }
-        });
-        message.value = `檔案 ${selectedFile.value} 已刪除`;
-        selectedFile.value = '';
-        fetchFiles(); // Refresh the file list
-      } catch (error) {
-        message.value = '刪除失敗: ' + error.message;
-      }
-    };
+const fillDetails = () => {
+  if (selectedCustomer.value) {
+    customer.value = selectedCustomer.value.name || '';
+    tel.value = selectedCustomer.value.tel || '';
+    fax.value = selectedCustomer.value.fax || '';
+  }
+};
 
+const generateQuotation = async () => {
+  const element = document.querySelector('.result-container');
+  if (!element) return alert('找不到報價內容');
+  await nextTick();
+  html2pdf().set({
+    margin: 0.5,
+    filename: `報價單_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  }).from(element).save();
+};
 
+const generateQuotation1 = () => {
+  const resultContent = document.querySelector('.result-container');
+  if (!resultContent) return alert('找不到報價內容');
+
+  const printWindow = window.open('', '_blank');
+
+  // 額外列印優化 CSS：調整 p 行距與字距
+  const tightCSS = `
+  th, td {
+    border: 1px solid black !important;
+    padding: 4px;
+  }
+  th {
+    background-color: #e5f4f9 !important;
+  }
+    p {
+      line-height: 1.3 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      letter-spacing: -0.5px !important;
+    }
+      @media print {
+    table, thead, tbody, tr, th, td {
+    border: 1px solid black !important;
+    border-collapse: collapse !important;
+    box-sizing: border-box !important;
+  }
+
+  th, td {
+    padding: 4px !important;
+  }
+
+  /* 強制讓最右邊也保留格線 */
+  .table-fixed {
+    width: 100%;
+    table-layout: fixed;
+    border-spacing: 0; /* ✅ 避免出現細縫 */
+  }
+
+   
     
 
 
 
+  `;
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>報價單</title>
+        <style>${styleText}</style>
+        <style>${tightCSS}</style>
+      </head>
+      <body>
+        <div class="result-container">${resultContent.innerHTML}</div>
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.onload = () => {
+    printWindow.focus();
+    printWindow.print();
+  };
+};
 
 
+const addCard = (type) => {
+  const knownTypes = ['一字型', 'L', 'M', '中島', '側落腳', '倒包', '假腳或門檻', '高背'];
+  if (!knownTypes.includes(type)) return alert(`❌ 不支援的元件類型：${type}`);
 
-    return {
-      itemList,
-      updateResult,
-      filteredResults,
-      filteredItems,
-      hasValidResults,
-      totalSubtotal,
-      totalSubtotal2,
-      files,
-      newFilename,
-      selectedFile,
-      message,
-      saveFile,
-      loadFile,
-      deleteFile,
-      results,
-      resultsProxy,
-      cuskeyword,
-      customers,
-      fetchCustomers,
-      selectedCustomer,
-      customer,
-      tel,
-      fax,
-      contacter,
-      add,
-      generateQuotation,
-      generateQuotation1,
-      fetchData,
-      filterCustomers,
-      fetchFiles,
-      applyUnifiedPrice,
-      applyUnifiedColor,
-      unifiedPrice,
-      fillDetails,
-      unifiedColor,
-      isSep,
-      sepPrice,
-      cardOrderList,
-      addCard,
-      removeCard,
-      getComponent,
-      orderedFilteredResults,
-      localColumnWidths,
-      isObject,
-      
+  const id = `${type}-${cardOrderList.value.filter(c => c.type === type).length + 1}`;
+  cardOrderList.value.push({ id, type, isEnabled: true });
+};
 
-    };
-  },
+const removeCard = (id, type) => {
+  cardOrderList.value = cardOrderList.value.filter(c => c.id !== id);
+  delete results.value[id];
+};
+
+const getComponent = (type) => {
+  const map = { '一字型': One, 'L': L, 'M': M, '中島': Iland, '側落腳': Leg, '倒包': Wrap, '假腳或門檻': DoorFront, '高背': Wall };
+  return map[type];
+};
+
+const exportToExcel = () => {
+  const data = [];
+
+  data.push([
+    '項目', '前沿', '背牆/後厚', '倒包', '摘要', '顏色',
+    '長', '深', '數量', '單位', '單價', '未稅價', '計算過程', '備註'
+  ]);
+
+  for (const [index, result] of Object.entries(orderedFilteredResults.value)) {
+    if (!result?.isEnabled) continue;
+    const detail = result.detail;
+
+    if (detail) {
+      const rows = [detail.side1, detail.side2, detail.side3].filter(Boolean);
+      rows.forEach((side, i) => {
+        data.push([
+          i === 0 ? index : '',
+          side.frontEdge || '',
+          side.backWall || '',
+          side.wrapBack || '',
+          i === 0 ? result.sumary : '',
+          i === 0 ? result.color : '',
+          side.length || '',
+          side.depth || '',
+          i === 0 ? result.roundedCentimeters : '',
+          i === 0 ? 'cm' : '',
+          i === 0 ? result.unitPrice : '',
+          i === 0 ? result.subtotal : '',
+          i === 0 ? result.calculationSteps : '',
+          i === 0 ? result.note : ''
+        ]);
+      });
+    } else {
+      data.push([
+        index,
+        result.frontEdge || '',
+        result.backWall || result.backEdge || '',
+        result.wrapBack || '',
+        result.sumary || '',
+        result.color || '',
+        result.length || '',
+        result.depth || '',
+        result.roundedCentimeters || '',
+        'cm',
+        result.unitPrice || '',
+        result.subtotal || '',
+        result.calculationSteps || '',
+        result.note || ''
+      ]);
+    }
+  }
+
+  filteredItems.value.forEach(item => {
+    data.push([
+      item.name, '', '', '', '', '', '', '',
+      item.amount, item.unit, item.price,
+      item.price * item.amount,
+      '', item.note
+    ]);
+  });
+
+  data.push(['總計', '', '', '', '', '', '', '', '', '', '', totalSubtotal.value, '', '']);
+
+  const worksheet = XLSX.utils.aoa_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, '報價單');
+
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  saveAs(blob, `報價單_${new Date().toISOString().slice(0, 10)}.xlsx`);
 };
 
 </script>
+
+
 
 
 <style scoped>
