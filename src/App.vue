@@ -254,7 +254,7 @@ import Wall from './components/Wall.vue';
 import QuotationHeader from './components/QuotationHeader.vue';
 import QuotationTable from './components/QuotationTable.vue';
 import WMSTable from './components/WMSTable.vue';
-import * as XLSX from 'xlsx';
+// import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
 const showhead=ref(true)
@@ -680,20 +680,50 @@ const getComponent = (type) => {
   const map = { '一字型': One, 'L': L, 'M': M, '中島': Iland, '側落腳': Leg, '倒包': Wrap, '假腳或門檻': DoorFront, '高背': Wall };
   return map[type];
 };
+import * as XLSX from 'xlsx-js-style';
 
-const exportToExcel = () => {
-  console.log("excel...",isSep.value)
-  if (isSep.value){exportToExcel2()}
-  else{exportToExcel1()}
-}
+
+ const exportToExcel = () => {
+  console.log("excel...", isSep.value);
+  if (isSep.value) {
+    exportToExcel2();
+  } else {
+    exportToExcel1();
+  }
+};
+
+const currentDate = new Date().toISOString().split("T")[0];
+
+const generateCommonHeader = () => ([
+  ['峻晟實業股份有限公司 / 峻倢實業有限公司'],
+  ['新北市林口區南勢街(里)77-3號'],
+  ['TEL: 02-26080192-3 | FAX: 02-26080194'],
+  ['峻晟業務: 楊家斌 0977-087-192 王冠堯 0985-980-568'],
+  ['估價單'],
+  [`客戶名稱：${customer.value || ''} ☎️：${tel.value}📠：${fax.value}`],
+  [`聯絡人：${contacter.value||''} 地址：${add.value} 估價日期： ${currentDate} PS:報價有效期間一個月`],
+  [],
+  ['親愛的客戶你好: 請詳看備註事項,謝謝您'],
+  ['1. 估價是以現有提供的圖面尺寸初估價格, 未包含任何對圖細節。'],
+  ['   PS: 若有任何異動. 依實際施作的台面(尺寸數量)規格計算價格。Ps: 請桶身師父加强櫃體懸空處結構。'],
+  ['2. 其他特殊加工作法, 以實際生產溝通對圖的作法(價格)為主。'],
+  ['   EX: 台面懸空處支撐(訂木座或訂製織架&平接處&對紋)'],
+  ['   單價一律是順紋不對紋的價格（對紋價格會特別備註）'],
+  ['   PS：紋路板對紋價（單價 +20%），正式下單時會以實際進貨板料作為電腦對紋模擬彩圖，確定後才施作（盡量對紋）'],
+  ['3. 台面尺寸, 要做一整片時, 需看樓層現場電梯是否可進？若需搬運 (樓梯搬運費另計)。'],
+  ['4. 若有溢估處, 確定不生產或挖孔時, 該筆金額請自行刪除即可。'],
+  ['5. 若為正式訂單, 麻煩貴司傳真最終的完整平面圖及立面圖至峻晟, 以便安排對圖及安装事宜, 謝謝您。'],
+]);
 
 const exportToExcel1 = () => {
-  const data = [];
-
-  data.push([
-    '項目', '前沿', '背牆/後厚', '倒包', '摘要', '顏色',
-    '長', '深', '數量', '單位', '單價', '未稅價', '計算過程', '備註'
-  ]);
+  const data = [
+    ...generateCommonHeader(),
+    [],
+    [
+      '項目', '前沿', '背牆/後厚', '倒包', '摘要', '顏色',
+      '長', '深', '數量', '單位', '單價', '未稅價', '計算過程', '備註'
+    ]
+  ];
 
   for (const [index, result] of Object.entries(orderedFilteredResults.value)) {
     if (!result?.isEnabled) continue;
@@ -748,9 +778,134 @@ const exportToExcel1 = () => {
     ]);
   });
 
-  data.push(['總計', '', '', '', '', '', '', '', '', '', '', totalSubtotal.value, '', '']);
+  data.push(['總計', '', '', '', '', '', '', '', '', '', '未稅', totalSubtotal2.value, '含稅', Math.round(totalSubtotal2.value*1.05)]);
 
   const worksheet = XLSX.utils.aoa_to_sheet(data);
+  const headStyle = {
+   font: { name: 'DFKai-SB', bold: false, sz: 20 },
+   alignment: { horizontal: 'center', vertical: 'center' }
+   };
+
+
+  const addStyle = {
+    font: { name: 'DFKai-SB',bold: false, sz: 16 },
+    alignment: { horizontal: 'center', vertical: 'center' }
+  };
+  const customerStyle = {
+    font: { name: 'DFKai-SB',bold: false, sz: 14 },
+    alignment: { horizontal: 'left', vertical: 'center' }
+  };
+  const noteStyle = {
+    font: { name: 'DFKai-SB',bold: false, sz: 12 },
+    alignment: { wrapText: true, vertical: 'top', horizontal: 'left' },
+    
+  };
+  const accountingStyleFormat = {
+  font: { name: 'DFKai-SB', sz: 11 },
+  alignment: { horizontal: 'right', vertical: 'center' },
+  numFmt: '#,##0'
+  };
+const colIndex = 11; // L 欄是第 12 欄，index 為 11
+for (let r = 20; r < data.length; r++) {
+  const addr = XLSX.utils.encode_cell({ r, c: colIndex });
+  const cell = worksheet[addr];
+  if (cell && typeof cell.v === 'number') {
+    cell.t = 'n'; // 明確告訴 Excel 這是數字
+    cell.z = '#,##0'; // 顯示格式：千分位不含小數
+    cell.s = accountingStyleFormat; // 文字樣式
+  }
+}
+  const addrT =XLSX.utils.encode_cell({ r:data.length-1, c: colIndex+2 });
+  const cellT = worksheet[addrT]
+  if (cellT && typeof cellT.v === 'number') {
+    cellT.t = 'n'; // 明確告訴 Excel 這是數字
+    cellT.z = '#,##0'; // 顯示格式：千分位不含小數
+    cellT.s = accountingStyleFormat; // 文字樣式
+  }
+  worksheet['A1'].s = headStyle;
+  worksheet['A2'].s = addStyle;
+  worksheet['A3'].s = addStyle;
+  worksheet['A4'].s = addStyle;
+  worksheet['A5'].s = addStyle;
+  worksheet['A6'].s = customerStyle;
+  worksheet['A7'].s = customerStyle;
+  const footerStartRow = 7; // 第 8 行開始是備註內容（從 A8 起）
+  for (let i = 8; i < 18 ; i++) {
+      const cellAddress = 'A' + ( i + 1);
+      if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
+      worksheet[cellAddress].s = noteStyle;
+  }
+  worksheet['!cols'] = [
+    { wpx: 80 }, { wpx: 60 }, { wpx: 60 }, { wpx: 60 },
+    { wpx: 120 }, { wpx: 80 }, { wpx: 50 }, { wpx: 50 },
+    { wpx: 50 }, { wpx: 40 }, { wpx: 60 }, { wpx: 70 },
+    { wpx: 150 }, { wpx: 150 }
+  ];
+
+  worksheet['!merges'] = [];
+  
+  for (let i = 0; i <= 6; i++) {
+  worksheet['!merges'].push({
+    s: { r: i, c: 0 },
+    e: { r: i, c: 13 }
+  });
+}
+  let rowOffset = generateCommonHeader().length + 2;
+  for (const [index, result] of Object.entries(orderedFilteredResults.value)) {
+    if (!result?.isEnabled) continue;
+    const detail = result.detail;
+    let rowSpan = 1;
+    if (detail) {
+      const rows = [detail.side1, detail.side2, detail.side3].filter(Boolean);
+      rowSpan = rows.length;
+    }
+    if (rowSpan > 1) {
+      worksheet['!merges'].push(
+        { s: { r: rowOffset, c: 0 }, e: { r: rowOffset + rowSpan - 1, c: 0 } },
+        { s: { r: rowOffset, c: 4 }, e: { r: rowOffset + rowSpan - 1, c: 4 } },
+        { s: { r: rowOffset, c: 5 }, e: { r: rowOffset + rowSpan - 1, c: 5 } },
+        { s: { r: rowOffset, c: 8 }, e: { r: rowOffset + rowSpan - 1, c: 8 } },
+        { s: { r: rowOffset, c: 9 }, e: { r: rowOffset + rowSpan - 1, c: 9 } },
+        { s: { r: rowOffset, c:10 }, e: { r: rowOffset + rowSpan - 1, c:10 } },
+        { s: { r: rowOffset, c:11 }, e: { r: rowOffset + rowSpan - 1, c:11 } },
+        { s: { r: rowOffset, c:12 }, e: { r: rowOffset + rowSpan - 1, c:12 } },
+        { s: { r: rowOffset, c:13 }, e: { r: rowOffset + rowSpan - 1, c:13 } }
+      );
+    }
+    rowOffset += rowSpan;
+  }
+  for (let i = 0; i <= 17; i++) {
+  worksheet['!merges'].push({
+    s: { r: i, c: 0 },
+    e: { r: i, c: 13 }
+  });
+}
+  worksheet['!merges'].push({
+    s: { r: data.length - 1, c: 0 },
+    e: { r: data.length - 1, c: 9 }
+  });
+
+  const startRow = generateCommonHeader().length + 2;
+  const endRow = data.length;
+  const headerStyle = {
+    font: { name: 'DFKai-SB', sz: 12, bold: true },
+    alignment: { horizontal: 'center', vertical: 'center' },
+    border: { top: {style:'thin'}, bottom: {style:'thin'}, left:{style:'thin'}, right:{style:'thin'} },
+    fill: { fgColor: { rgb: 'E6F7FF' } }
+  };
+  const bodyStyle = {
+    font: { name: 'DFKai-SB', sz: 11 },
+    alignment: { wrapText: true, horizontal: 'left', vertical: 'top' },
+    border: { top: {style:'thin'}, bottom: {style:'thin'}, left:{style:'thin'}, right:{style:'thin'} }
+  };
+  for (let r = startRow - 1; r < endRow; r++) {
+    for (let c = 0; c < 14; c++) {
+      const addr = XLSX.utils.encode_cell({ r, c });
+      if (!worksheet[addr]) continue;
+      worksheet[addr].s = r === (startRow - 1) ? headerStyle : bodyStyle;
+    }
+  }
+
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, '報價單');
 
@@ -820,7 +975,7 @@ const exportToExcel2 = () => {
     ]);
   });
 
-  data.push(['總計', '', '', '', '', '', '', '', '', '', '', totalSubtotal2.value, '', '']);
+  data.push(['總木計', '', '', '', '', '', '', '', '', '', '未稅', totalSubtotal2.value, '含稅', Math.round(totalSubtotal2.value*1.05)]);
 
   const worksheet = XLSX.utils.aoa_to_sheet(data);
   const workbook = XLSX.utils.book_new();
