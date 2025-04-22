@@ -111,7 +111,7 @@ watch(
 
       // ✅ 如果有 forceUpdate，更新 unitPrice
       if (val.forceUpdate) {
-        console.log(`🔄 L.vue - 更新 unitPrice: ${val.unitPrice}`);
+        // console.log(`🔄 L.vue - 更新 unitPrice: ${val.unitPrice}`);
         form.value.unitPrice = val.unitPrice;
       }
 
@@ -154,19 +154,20 @@ watch(isEnabled, (val) => {
       if (thickness < 48 && depth < 40) {
         cmValue = length * 0.85;
         calcSteps = `${length} * 0.85 = ${cmValue.toFixed(0)} 公分`;
-      } else if (frontEdge + backWall + wrapBack < (limit - 60) && depth > 60) {
-        cmValue = (depth / 60) * length;
-        calcSteps = `${length} * (${depth} / 60) = ${cmValue.toFixed(0)} 公分`;
+      } else if (frontEdge + backWall <= (limit - 60) && (depth+wrapBack) > 60) {
+        const wrapStr = wrapBack > 0 ? ` + ${wrapBack}` : '';
+        cmValue = Math.round((depth+wrapBack) / 60 * length);
+        calcSteps = `${length} * (${depth} ${wrapStr}) / 60 = ${cmValue} 公分`;
       } else if (thickness > limit) {
         const deduction = limit - 60 > 0 ? limit - 60 : 0;
         const adjusted = (thickness - deduction) / 60;
-        cmValue = length * adjusted;
+        cmValue = Math.round(length * adjusted);
         const wrapStr = wrapBack > 0 ? ` + ${wrapBack}` : '';
         const minusStr = deduction > 0 ? ` - ${deduction}` : '';
-        calcSteps = `${length} * (${depth} + ${frontEdge} + ${backWall}${wrapStr}${minusStr}) / 60 = ${cmValue.toFixed(0)} 公分`;
+        calcSteps = `${length} * (${depth} + ${frontEdge} + ${backWall}${wrapStr}${minusStr}) / 60 = ${cmValue} 公分`;
       } else {
-        cmValue = length;
-        calcSteps = `${length} = ${cmValue.toFixed(0)} 公分`;
+        cmValue = Math.round(length);
+        calcSteps = `${length} = ${cmValue} 公分`;
       }
 
       return { cmValue, calcSteps,area, calcSteps2 };

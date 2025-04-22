@@ -779,8 +779,20 @@ const exportToExcel1 = () => {
   });
 
   data.push(['總計', '', '', '', '', '', '', '', '', '', '未稅', totalSubtotal2.value, '含稅', Math.round(totalSubtotal2.value*1.05)]);
-
+  data.push(['石材庫存以代理商現貨為主', '', '', '', '', '', '', '', '', '', '', '', '', '']);
   const worksheet = XLSX.utils.aoa_to_sheet(data);
+  const footAlert = {
+  font: {
+    name: 'DFKai-SB',
+    bold: false,
+    sz: 14,
+    color: { rgb: 'FF0000' }  // 紅色（Hex 表示法）
+  },
+  alignment: {
+    horizontal: 'left',
+    vertical: 'center'
+  }
+};
   const headStyle = {
    font: { name: 'DFKai-SB', bold: false, sz: 20 },
    alignment: { horizontal: 'center', vertical: 'center' }
@@ -829,7 +841,9 @@ for (let r = 20; r < data.length; r++) {
   worksheet['A5'].s = addStyle;
   worksheet['A6'].s = customerStyle;
   worksheet['A7'].s = customerStyle;
+  worksheet[`A${data.length-1}` ].s = footAlert;
   const footerStartRow = 7; // 第 8 行開始是備註內容（從 A8 起）
+
   for (let i = 8; i < 18 ; i++) {
       const cellAddress = 'A' + ( i + 1);
       if (!worksheet[cellAddress]) worksheet[cellAddress] = { t: 's', v: '' };
@@ -881,8 +895,8 @@ for (let r = 20; r < data.length; r++) {
   });
 }
   worksheet['!merges'].push({
-    s: { r: data.length - 1, c: 0 },
-    e: { r: data.length - 1, c: 9 }
+    s: { r: data.length - 2, c: 0 },
+    e: { r: data.length - 2, c: 9 }
   });
 
   const startRow = generateCommonHeader().length + 2;

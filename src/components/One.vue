@@ -6,16 +6,16 @@
       <h2 class="font-semibold text-gray-700">一字型</h2>
 
       <label class="whitespace-nowrap">顏色</label>
-      <input v-model="form.color" type="text" class="w-[64px] p-1 border rounded-md focus:ring-1 focus:ring-green-500" :disabled="!isEnabled" />
+      <input v-model="form.color" type="text" class="w-[64px] p-1 border rounded-md focus:ring-1 focus:ring-green-500"  />
 
       <label class="whitespace-nowrap">摘要</label>
-      <input v-model="form.sumary" type="text" class="w-[80px] p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model="form.sumary" type="text" class="w-[80px] p-1 border rounded-md"  />
 
       <label class="whitespace-nowrap">單開</label>
-      <input v-model="form.oneOpen" type="checkbox" class="h-4 w-4" :disabled="!isEnabled" />
+      <input v-model="form.oneOpen" type="checkbox" class="h-4 w-4"  />
 
       <label class="whitespace-nowrap">雙開</label>
-      <input v-model="form.duOpen" type="checkbox" class="h-4 w-4" :disabled="!isEnabled" />
+      <input v-model="form.duOpen" type="checkbox" class="h-4 w-4"  />
     </div>
 
     <!-- 表格改為 Grid -->
@@ -26,26 +26,26 @@
       <label class="text-gray-600 text-center">背牆</label>
       <label class="text-gray-600 text-center">倒包</label>
 
-      <input v-model.number="form.length" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-      <input v-model.number="form.depth" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-      <input v-model.number="form.frontEdge" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-      <input v-model.number="form.backWall" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
-      <input v-model.number="form.wrapBack" type="number" class="p-1 border rounded-md" :disabled="!isEnabled" />
+      <input v-model.number="form.length" type="number" class="p-1 border rounded-md"  />
+      <input v-model.number="form.depth" type="number" class="p-1 border rounded-md"  />
+      <input v-model.number="form.frontEdge" type="number" class="p-1 border rounded-md"  />
+      <input v-model.number="form.backWall" type="number" class="p-1 border rounded-md"  />
+      <input v-model.number="form.wrapBack" type="number" class="p-1 border rounded-md"  />
     </div>
 
     <!-- 下方選項列 -->
     <div class="flex flex-wrap gap-4 mt-4 text-sm">
       <div class="flex items-center space-x-1">
         <label class="whitespace-nowrap">板材極限 (cm)</label>
-        <input v-model.number="form.limit" type="number" class="w-[60px] p-1 border rounded-md" :disabled="!isEnabled" min="60" />
+        <input v-model.number="form.limit" type="number" class="w-[60px] p-1 border rounded-md"  min="60" />
       </div>
       <div class="flex items-center space-x-1">
         <label class="whitespace-nowrap">單價</label>
-        <input v-model.number="form.unitPrice" type="number" class="w-[72px] p-1 border rounded-md" :disabled="!isEnabled" />
+        <input v-model.number="form.unitPrice" type="number" class="w-[72px] p-1 border rounded-md"  />
       </div>
       <div class="flex items-center space-x-1">
         <label class="whitespace-nowrap">備註</label>
-        <input v-model="form.note" type="text" class="w-[100px] p-1 border rounded-md" :disabled="!isEnabled" />
+        <input v-model="form.note" type="text" class="w-[100px] p-1 border rounded-md"  />
       </div>
     </div>
   </div>
@@ -95,19 +95,20 @@ export default {
       if (thickness < 48 && depth < 40) {
         cmValue = length * 0.85;
         calcSteps = `${length} * 0.85 = ${cmValue.toFixed(0)} 公分`;
-      } else if (frontEdge + backWall + wrapBack < (limit - 60) && depth > 60) {
-        cmValue = (depth / 60) * length;
-        calcSteps = `${length} * (${depth} / 60) = ${cmValue.toFixed(0)} 公分`;
+      } else if (frontEdge + backWall < (limit - 60) && (depth+wrapBack) > 60) {
+        const wrapStr = wrapBack > 0 ? ` + ${wrapBack}` : '';
+        cmValue = Math.round((depth+wrapBack) / 60 * length);
+        calcSteps = `${length} * (${depth} ${wrapStr}) / 60 = ${cmValue} 公分`;
       } else if (thickness > limit) {
         const deduction = limit - 60 > 0 ? limit - 60 : 0;
         const adjusted = (thickness - deduction) / 60;
-        cmValue = length * adjusted;
+        cmValue = Math.round(length * adjusted);
         const wrapStr = wrapBack > 0 ? ` + ${wrapBack}` : '';
         const minusStr = deduction > 0 ? ` - ${deduction}` : '';
         calcSteps = `${length} * (${depth} + ${frontEdge} + ${backWall}${wrapStr}${minusStr}) / 60 = ${cmValue.toFixed(0)} 公分`;
       } else {
         cmValue = length;
-        calcSteps = `${length} = ${cmValue.toFixed(0)} 公分`;
+        calcSteps = `${length} = ${cmValue} 公分`;
       }
 
       return { cmValue, calcSteps, area, calcSteps2, frontEdgeLength };
