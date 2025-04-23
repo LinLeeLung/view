@@ -349,11 +349,11 @@ export default {
     alert("請輸入有效的價格");
     return;
   }
-  console.log(`✅ 統一價格: ${unifiedPrice.value}`);
+  // console.log(`✅ 統一價格: ${unifiedPrice.value}`);
 
 Object.keys(results.value).forEach((key) => {
   // ✅ 不論是否勾選，都強制更新 unitPrice
-  console.log(key, results.value[key]);
+  // console.log(key, results.value[key]);
   results.value[key].unitPrice = unifiedPrice.value; // ✅ 統一價格
   results.value[key].forceUpdate = true; // ✅ 強制更新
   if(key.includes('假腳或門檻')){
@@ -365,7 +365,7 @@ nextTick(() => {
   calculate(); // ✅ 重新計算結果
 });
 
-console.log('🔄 已統一所有元件價格');
+// console.log('🔄 已統一所有元件價格');
 };
 
 const applyUnifiedColor = () => {
@@ -375,7 +375,7 @@ const applyUnifiedColor = () => {
     return;
   }
 
-  console.log(`✅ 統一顏色: ${newColor}`);
+  // console.log(`✅ 統一顏色: ${newColor}`);
 
   Object.keys(results.value).forEach((key) => {
     if (results.value[key]?.isEnabled) {
@@ -387,7 +387,7 @@ const applyUnifiedColor = () => {
     calculate(); // ✅ 重新計算結果
   });
 
-  console.log("🔄 已統一所有元件顏色");
+  // console.log("🔄 已統一所有元件顏色");
 };
 
 
@@ -421,10 +421,20 @@ const applyUnifiedColor = () => {
       }, 0);
       return total.toFixed(0);
     });
-    watch([isSep, totalFrontEdgeLength], () => {
-    applySeparationItems({ isSep, itemList, totalFrontEdgeLength });
-});
+    // ✅ 防止無限遞迴：加入 debounce & flush: 'post'
+let separationTimeout = null;
 
+watch(
+  [isSep, () => totalFrontEdgeLength.value],
+  () => {
+    clearTimeout(separationTimeout);
+    separationTimeout = setTimeout(() => {
+      // console.log('[watch] 觸發 applySeparationItems');
+      applySeparationItems({ isSep, itemList, totalFrontEdgeLength });
+    }, 100); // ➜ 100ms 節流防抖
+  },
+  { flush: 'post' }
+);
 
 
       const fetchCustomers = async () => {
@@ -442,10 +452,10 @@ const applyUnifiedColor = () => {
         }
       };
   onMounted(() => {
-      console.log("正在獲取客戶資料...");
+      // console.log("正在獲取客戶資料...");
       fetchCustomers(); // 自動載入客戶資料
       fetchData(); // 自動載入 API 資料
-      console.log('isSep:', isSep.value);
+      // console.log('isSep:', isSep.value);
       });
    ///
    const filterCustomers = computed(() => {
