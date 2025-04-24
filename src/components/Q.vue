@@ -37,9 +37,9 @@
             <option value="" disabled>選擇檔案</option>
             <option v-for="file in files" :key="file" :value="file">{{ file }}</option>
           </select>
-          <button @click="handleShare" class="m-2 p-2  bg-green-500 text-white rounded hover:bg-green-600">
+          <!-- <button @click="handleShare" class="m-2 p-2  bg-green-500 text-white rounded hover:bg-green-600">
               分享
-            </button>
+            </button> -->
           <button
             @click="loadFile"
             class="m-2 ml-3 p-2  bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -83,6 +83,20 @@
             class="m-1 p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
            >
             統一顏色
+           </button>
+           <label class="m-2 ">統一極限值：</label>
+          <input
+            v-model="unifiedLimit"
+            type="text"
+           
+            class="p-1 m-1 border rounded-md w-30 text-sm"
+            placeholder="輸入顏色"
+          />
+           <button
+            @click="applyUnifiedLimit"
+            class="m-1 p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+           >
+            統一極限值
            </button>
            <button @click="generateQuotation1" class="m-1 p-1 bg-purple-500 text-white rounded hover:bg-purple-600">
             電腦報價單
@@ -305,6 +319,20 @@ const applyUnifiedColor = () => {
   nextTick(() => calculate());
 };
 
+const applyUnifiedLimit = () => {
+  const newLimit = unifiedLimit.value;
+  if (!newLimit) {
+    alert("請輸入有效的極限值");
+    return;
+  }
+  Object.keys(results.value).forEach((key) => {
+    if (results.value[key]?.isEnabled) {
+      results.value[key].limit = newLimit;
+    }
+  });
+  nextTick(() => calculate());
+};
+
 const calculate = async () => {
   await nextTick();
 };
@@ -403,8 +431,9 @@ const fax = ref('');
 const contacter = ref('');
 const add = ref('');
 const shareFilename=ref('')
-const unifiedPrice = ref(0);
-const unifiedColor = ref('');
+const unifiedPrice = ref(85);
+const unifiedColor = ref('CS-102');
+const unifiedLimit = ref(72);
 const isSep = ref(false);
 const sepPrice = ref(750);
 
@@ -864,9 +893,9 @@ for (let r = 20; r < data.length; r++) {
   }
   worksheet['!cols'] = [
     { wpx: 80 }, { wpx: 60 }, { wpx: 60 }, { wpx: 60 },
-    { wpx: 120 }, { wpx: 80 }, { wpx: 50 }, { wpx: 50 },
+    { wpx: 80 }, { wpx: 80 }, { wpx: 50 }, { wpx: 50 },
     { wpx: 50 }, { wpx: 40 }, { wpx: 60 }, { wpx: 70 },
-    { wpx: 150 }, { wpx: 150 }
+    { wpx: 150 }, { wpx: 80 }
   ];
 
   worksheet['!merges'] = [];
@@ -911,7 +940,10 @@ for (let r = 20; r < data.length; r++) {
     s: { r: data.length - 2, c: 0 },
     e: { r: data.length - 2, c: 9 }
   });
-
+   worksheet['!merges'].push({
+    s: { r: data.length - 1, c: 0 },
+    e: { r: data.length - 1, c: 9 }
+  });
   const startRow = generateCommonHeader().length + 2;
   const endRow = data.length-1;
   const headerStyle = {
@@ -1023,7 +1055,7 @@ const handleShare = async () => {
   }
   
   const filename = shareFilename.value;
-  const shareUrl = `${window.location.origin}/accn/share?filename=${encodeURIComponent(filename)}`;
+  const shareUrl = `${window.location.origin}/accn/#/share?filename=${encodeURIComponent(filename)}`;
   window.open(shareUrl, '_blank');
 
   // 顯示成功訊息
