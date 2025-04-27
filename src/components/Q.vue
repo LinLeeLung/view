@@ -37,9 +37,9 @@
             <option value="" disabled>選擇檔案</option>
             <option v-for="file in files" :key="file" :value="file">{{ file }}</option>
           </select>
-          <!-- <button @click="handleShare" class="m-2 p-2  bg-green-500 text-white rounded hover:bg-green-600">
+          <button @click="handleShare" class="m-2 p-2  bg-green-500 text-white rounded hover:bg-green-600">
               分享
-            </button> -->
+            </button>
           <button
             @click="loadFile"
             class="m-2 ml-3 p-2  bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -1055,7 +1055,7 @@ const handleShare = async () => {
   }
   
   const filename = shareFilename.value;
-  const shareUrl = `${window.location.origin}/accn/#/share?filename=${encodeURIComponent(filename)}`;
+  const shareUrl = `${window.location.origin}/view/#/share?filename=${encodeURIComponent(filename)}`;
   window.open(shareUrl, '_blank');
 
   // 顯示成功訊息
